@@ -9,6 +9,7 @@
       margin: 0;
       overflow: hidden;
       text-align: center;
+      font-family: sans-serif;
     }
 
     canvas {
@@ -36,34 +37,157 @@
       font-family: sans-serif;
       display: none;
     }
+
+    #recordBoard {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      border-radius: 10px;
+      display: none;
+    }
+
+    #recordBoard h2 {
+      margin-top: 0;
+      color: gold;
+    }
+
+    #recordList {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+    }
+
+    #recordList li {
+      padding: 8px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #recordList li:last-child {
+      border-bottom: none;
+    }
+
+    .record-name {
+      font-weight: bold;
+    }
+
+    .record-time {
+      color: #ffcc00;
+    }
+
+    #submitForm {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #submitForm input {
+      padding: 8px;
+      border-radius: 4px;
+      border: none;
+    }
+
+    #submitForm button {
+      padding: 8px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #submitForm button:hover {
+      background: #45a049;
+    }
+
+    #closeRecordBtn {
+      margin-top: 15px;
+      padding: 8px 15px;
+      background: #f44336;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #closeRecordBtn:hover {
+      background: #d32f2f;
+    }
+
+    #viewRecordsBtn {
+      display: none;
+      margin-top: 10px;
+      margin-left: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #viewRecordsBtn:hover {
+      background: #0b7dda;
+    }
   </style>
 </head>
 
 <body>
   <canvas id="gamecanvs"></canvas>
   <button id="restartBtn">Restart</button>
+  <button id="viewRecordsBtn">View Records</button>
   <div id="dialogBox"></div>
+  <div id="recordBoard">
+    <h2>Speedrun Records</h2>
+    <ul id="recordList"></ul>
+    <div id="submitForm">
+      <input type="text" id="playerName" placeholder="Enter your name" maxlength="15">
+      <button id="submitRecordBtn">Submit Record</button>
+    </div>
+    <button id="closeRecordBtn">Close</button>
+  </div>
   <script>
     const canvas = document.getElementById("gamecanvs");
     const ctx = canvas.getContext("2d");
     canvas.width = 800;
     canvas.height = 600;
 
-    // Game States: 'start', 'world', 'talk', 'combat', 'bossFight', 'win', 'over'
+    // Game States: 'start', 'world', 'talk', 'combat', 'bossFight', 'win', 'over', 'records'
     let gameState = "start";
+
+    // Global Speedrun Timer (in ms)
+    let speedrunTime = 0;
+    let finalTime = 0;
+
+    // Speedrun Records
+    let speedrunRecords = JSON.parse(localStorage.getItem('speedrunRecords')) || [];
 
     // World & Story Variables
     const countries = [
       {
         name: "Old Kingdom",
         goonDensity: 1,
+        background: {
+          sky: "#87CEEB", // Light blue sky
+          ground: "#7CFC00", // Green grass
+          mountains: "#8B4513", // Brown mountains
+          trees: "#228B22" // Forest green trees
+        },
         npcs: [
           {
             x: 300,
             y: 400,
             type: "talk",
-            dialog:
-              "The ghost of the goon haunts these lands. Follow the river north.",
+            dialog: "The ghost of the goon haunts these lands. Follow the river north.",
           },
           {
             x: 600,
@@ -77,30 +201,39 @@
       {
         name: "Desert Realm",
         goonDensity: 2,
+        background: {
+          sky: "#FFD700", // Golden sky
+          ground: "#F4A460", // Sandy brown
+          mountains: "#D2B48C", // Tan mountains
+          trees: "#DAA520" // Golden rod (desert plants)
+        },
         npcs: [
           {
             x: 200,
             y: 300,
             type: "talk",
-            dialog:
-              "In the heat of the desert, the ghost roams. Seek the oasis.",
+            dialog: "In the heat of the desert, the ghost roams. Seek the oasis.",
           },
         ],
       },
       {
         name: "Frozen Tundra",
         goonDensity: 3,
+        background: {
+          sky: "#B0E0E6", // Powder blue sky
+          ground: "#F0FFFF", // Snow white
+          mountains: "#A9A9A9", // Dark gray mountains
+          trees: "#008080" // Teal (pine trees)
+        },
         npcs: [
           {
             x: 500,
             y: 350,
             type: "talk",
-            dialog:
-              "The cold hides many secrets. The ghost is near the ice cave.",
+            dialog: "The cold hides many secrets. The ghost is near the ice cave.",
           },
         ],
       },
-      // ... add more countries as desired
     ];
     let currentCountry = 0;
     let countryNameDisplayTime = 0; // when >0, display cool title animation
@@ -113,10 +246,15 @@
       y: 300,
       width: 30,
       height: 30,
-      speed: 4,
+      speed: 4, // This is now a constant and cannot be changed during gameplay
       color: "red",
       weapon: "sword", // Always have a sword
       hasGun: false,
+      health: 100, // Player health
+      maxHealth: 100,
+      invulnerable: false, // Invulnerability after taking damage
+      invulnerableTimer: 0,
+      invulnerableDuration: 1000 // 1 second of invulnerability
     };
 
     // World boundaries
@@ -129,7 +267,7 @@
     let goonTimer = 0;
     const baseGoonInterval = 2000; // ms, modified by country's goonDensity
 
-    // Missing declarations added:
+    // Coins
     const coins = [];
     let coinTimer = 0;
 
@@ -140,40 +278,203 @@
     let currentDialog = "";
     let dialogActive = false;
 
-    // Bullets for combat (bossFight and active combat)
+    // Bullets for combat (only used in 'combat' state)
     const bullets = [];
     const bulletSpeed = 6;
 
-    // Final Boss (will appear in bossFight state)
+    // Castle maze for boss fight
+    const castleWalls = [];
+    const castleSize = { width: 1600, height: 1200 };
+    
+    // Final Boss (appears in bossFight state)
     const boss = {
-      x: worldBounds.width - 150,
-      y: 200,
-      width: 50,
-      height: 50,
-      hp: 10,
+      x: castleSize.width - 150,
+      y: castleSize.height / 2,
+      width: 60,
+      height: 60,
+      hp: 20,
+      maxHp: 20,
       color: "purple",
-      speed: 1,
-      canShoot: true,
+      speed: 1.5,
+      attackRange: 200,
+      attackCooldown: 0,
+      attackRate: 2000, // ms between attacks
+      damage: 10,
+      attackProjectiles: []
     };
+
+    // Record board elements
+    const recordBoard = document.getElementById("recordBoard");
+    const recordList = document.getElementById("recordList");
+    const playerNameInput = document.getElementById("playerName");
+    const submitRecordBtn = document.getElementById("submitRecordBtn");
+    const closeRecordBtn = document.getElementById("closeRecordBtn");
+    const viewRecordsBtn = document.getElementById("viewRecordsBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    // Initialize castle maze
+    function initCastleMaze() {
+      castleWalls.length = 0;
+      
+      // Outer walls
+      // Top wall
+      castleWalls.push({
+        x: 0,
+        y: 0,
+        width: castleSize.width,
+        height: 40,
+        color: "#8B4513"
+      });
+      
+      // Bottom wall
+      castleWalls.push({
+        x: 0,
+        y: castleSize.height - 40,
+        width: castleSize.width,
+        height: 40,
+        color: "#8B4513"
+      });
+      
+      // Left wall
+      castleWalls.push({
+        x: 0,
+        y: 0,
+        width: 40,
+        height: castleSize.height,
+        color: "#8B4513"
+      });
+      
+      // Right wall
+      castleWalls.push({
+        x: castleSize.width - 40,
+        y: 0,
+        width: 40,
+        height: castleSize.height,
+        color: "#8B4513"
+      });
+      
+      // Maze internal walls
+      // Horizontal walls
+      castleWalls.push({
+        x: 200,
+        y: 200,
+        width: 800,
+        height: 40,
+        color: "#8B4513"
+      });
+      
+      castleWalls.push({
+        x: 600,
+        y: 400,
+        width: 800,
+        height: 40,
+        color: "#8B4513"
+      });
+      
+      castleWalls.push({
+        x: 200,
+        y: 600,
+        width: 800,
+        height: 40,
+        color: "#8B4513"
+      });
+      
+      castleWalls.push({
+        x: 600,
+        y: 800,
+        width: 800,
+        height: 40,
+        color: "#8B4513"
+      });
+      
+      // Vertical walls
+      castleWalls.push({
+        x: 400,
+        y: 240,
+        width: 40,
+        height: 160,
+        color: "#8B4513"
+      });
+      
+      castleWalls.push({
+        x: 800,
+        y: 440,
+        width: 40,
+        height: 160,
+        color: "#8B4513"
+      });
+      
+      castleWalls.push({
+        x: 400,
+        y: 640,
+        width: 40,
+        height: 160,
+        color: "#8B4513"
+      });
+      
+      castleWalls.push({
+        x: 1200,
+        y: 440,
+        width: 40,
+        height: 360,
+        color: "#8B4513"
+      });
+      
+      // Boss chamber
+      castleWalls.push({
+        x: castleSize.width - 300,
+        y: castleSize.height / 2 - 150,
+        width: 40,
+        height: 300,
+        color: "#8B4513"
+      });
+    }
 
     const keys = {};
     window.addEventListener("keydown", (e) => {
       keys[e.key] = true;
-      // Start game on SPACE at title screen
-      if (e.key === " " && gameState === "start") {
-        gameState = "world";
-        enterCountry(0);
-      }
-      // When talking, press ENTER to close dialog
-      if (e.key === "Enter" && dialogActive) {
+
+      // Exit dialog with Escape key (for shop or talking)
+      if (e.key === "Escape" && dialogActive) {
         dialogBox.style.display = "none";
         dialogActive = false;
         gameState = "world";
       }
-      // In combat or bossFight, allow shooting gun if owned via "s"
+
+      // Handle RIGHT ARROW key to start game (changed from SPACE)
+      if (e.key === "ArrowRight" && gameState === "start") {
+        gameState = "world";
+        enterCountry(0);
+      }
+
+      // Handle SPACE key for boss fight
+      if (e.key === " " && gameState === "bossFight") {
+        // Damage boss when in range
+        const distance = Math.sqrt(
+          Math.pow(boss.x - player.x, 2) + Math.pow(boss.y - player.y, 2)
+        );
+        
+        if (distance < 100) { // Player must be close to boss to damage it
+          boss.hp -= 1;
+          
+          // Visual feedback
+          boss.color = "red";
+          setTimeout(() => {
+            boss.color = "purple";
+          }, 100);
+          
+          if (boss.hp <= 0) {
+            gameState = "win";
+            finalTime = speedrunTime; // Save the final time when winning
+            viewRecordsBtn.style.display = "inline-block";
+          }
+        }
+      }
+
+      // In combat, allow shooting gun if owned using "s"
       if (
         e.key.toLowerCase() === "s" &&
-        (gameState === "combat" || gameState === "bossFight") &&
+        gameState === "combat" &&
         player.hasGun
       ) {
         bullets.push({
@@ -185,17 +486,16 @@
           color: "black",
         });
       }
-      // In world, if near an NPC and pressing E, interact
+
+      // Interact with NPCs in the world with E
       if (e.key.toLowerCase() === "e" && gameState === "world") {
         activeNPCs.forEach((npc) => {
           if (checkCollision(player, npc)) {
-            // Shop NPC interaction
             if (npc.type === "shop") {
               if (score >= npc.cost && !player.hasGun) {
                 score -= npc.cost;
                 player.hasGun = true;
-                currentDialog =
-                  "You bought a gun! Use it with 'S' in combat.";
+                currentDialog = "You bought a gun! Use it with 'S' in combat.";
               } else if (player.hasGun) {
                 currentDialog = "You already own a gun.";
               } else {
@@ -209,13 +509,17 @@
         });
       }
     });
+
     window.addEventListener("keyup", (e) => {
       keys[e.key] = false;
     });
 
-    document
-      .getElementById("restartBtn")
-      .addEventListener("click", restartGame);
+    restartBtn.addEventListener("click", restartGame);
+    
+    // Record board event listeners
+    submitRecordBtn.addEventListener("click", submitRecord);
+    closeRecordBtn.addEventListener("click", closeRecordBoard);
+    viewRecordsBtn.addEventListener("click", showRecordBoard);
 
     function showDialog(text) {
       dialogBox.innerText = text;
@@ -237,111 +541,134 @@
     function enterCountry(index) {
       currentCountry = index;
       countryNameDisplayTime = COUNTRY_NAME_DISPLAY_DURATION;
-      // Set active NPCs from country data AND add width/height for collision
       activeNPCs = countries[currentCountry].npcs.map((npcData) => ({
-        ...npcData, // Copy existing properties (x, y, type, dialog, cost)
-        width: 40,  // Add width for collision and drawing
-        height: 40, // Add height for collision and drawing
+        ...npcData,
+        width: 40,
+        height: 40,
       }));
-      // Clear goons and coins to simulate fresh environment
       goons.length = 0;
-      coins.length = 0; // Also clear coins when changing country
+      coins.length = 0;
       coinTimer = 0;
-      // Reset player position to start of the new country (optional, but good practice)
       player.x = 100;
       player.y = 300;
-      // Ensure camera resets too
       camera.x = player.x - canvas.width / 2 + player.width / 2;
       camera.y = player.y - canvas.height / 2 + player.height / 2;
-      camera.x = Math.max(
-        worldBounds.x,
-        Math.min(camera.x, worldBounds.width - canvas.width)
-      );
-      camera.y = Math.max(
-        worldBounds.y,
-        Math.min(camera.y, worldBounds.height - canvas.height)
-      );
+      camera.x = Math.max(worldBounds.x, Math.min(camera.x, worldBounds.width - canvas.width));
+      camera.y = Math.max(worldBounds.y, Math.min(camera.y, worldBounds.height - canvas.height));
     }
 
-    // Update function
+    // Enter boss fight castle
+    function enterCastle() {
+      gameState = "bossFight";
+      initCastleMaze();
+      player.x = 100;
+      player.y = castleSize.height / 2;
+      boss.x = castleSize.width - 150;
+      boss.y = castleSize.height / 2;
+      boss.hp = boss.maxHp;
+      boss.attackProjectiles = [];
+      camera.x = player.x - canvas.width / 2 + player.width / 2;
+      camera.y = player.y - canvas.height / 2 + player.height / 2;
+    }
+
+    // Check if player collides with any castle wall
+    function checkWallCollisions(newX, newY) {
+      const playerRect = {
+        x: newX,
+        y: newY,
+        width: player.width,
+        height: player.height
+      };
+      
+      for (const wall of castleWalls) {
+        if (checkCollision(playerRect, wall)) {
+          return true;
+        }
+      }
+      
+      return false;
+    }
+
+    // Update function (deltaTime in ms)
     function update(deltaTime) {
+      // Only update the speedrun timer when not on the start screen and not in records view
+      if (gameState !== "start" && gameState !== "records") {
+        speedrunTime += deltaTime;
+      }
+
+      // Update player invulnerability timer
+      if (player.invulnerable) {
+        player.invulnerableTimer -= deltaTime;
+        if (player.invulnerableTimer <= 0) {
+          player.invulnerable = false;
+        }
+      }
+
       if (gameState === "world" || gameState === "combat") {
-        // Player movement (free roam within world)
+        // Player movement in world or combat
+        let newX = player.x;
+        let newY = player.y;
+        
         if (keys["ArrowUp"] && player.y > worldBounds.y)
-          player.y -= player.speed;
-        if (
-          keys["ArrowDown"] &&
-          player.y + player.height < worldBounds.y + worldBounds.height
-        )
-          player.y += player.speed;
+          newY -= player.speed;
+        if (keys["ArrowDown"] && player.y + player.height < worldBounds.y + worldBounds.height)
+          newY += player.speed;
         if (keys["ArrowLeft"] && player.x > worldBounds.x)
-          player.x -= player.speed;
-        if (
-          keys["ArrowRight"] &&
-          player.x + player.width < worldBounds.x + worldBounds.width
-        )
-          player.x += player.speed;
-        // Update camera to follow player (centered on canvas)
+          newX -= player.speed;
+        if (keys["ArrowRight"] && player.x + player.width < worldBounds.x + worldBounds.width)
+          newX += player.speed;
+        
+        // Update player position
+        player.x = newX;
+        player.y = newY;
+
+        // Update camera to follow player
         camera.x = player.x - canvas.width / 2 + player.width / 2;
         camera.y = player.y - canvas.height / 2 + player.height / 2;
-        // Clamp camera to world boundaries
-        camera.x = Math.max(
-          worldBounds.x,
-          Math.min(camera.x, worldBounds.width - canvas.width)
-        );
-        camera.y = Math.max(
-          worldBounds.y,
-          Math.min(camera.y, worldBounds.height - canvas.height)
-        );
+        camera.x = Math.max(worldBounds.x, Math.min(camera.x, worldBounds.width - canvas.width));
+        camera.y = Math.max(worldBounds.y, Math.min(camera.y, worldBounds.height - canvas.height));
 
-        // Spawn goon obstacles with interval modified by current country's density
+        // Spawn goons based on current country's density
         goonTimer += deltaTime;
-        if (
-          goonTimer >
-          baseGoonInterval / countries[currentCountry].goonDensity
-        ) {
+        if (goonTimer > baseGoonInterval / countries[currentCountry].goonDensity) {
           const size = Math.random() * 30 + 20;
           goons.push({
             x: worldBounds.x + worldBounds.width,
             y: Math.random() * (worldBounds.height - size),
             width: size,
             height: size,
-            speed: 0.5 + Math.random(), // slower goons
+            speed: 0.5 + Math.random(),
             color: "black",
           });
           goonTimer = 0;
         }
-        // Update goons (move left slowly)
+        // Update goons (move left slowly and check for collision with player)
         for (let i = goons.length - 1; i >= 0; i--) {
           goons[i].x -= goons[i].speed;
-          if (goons[i].x + goons[i].width < worldBounds.x) goons.splice(i, 1);
-          // Collision with player triggers combat state
+          if (goons[i].x + goons[i].width < worldBounds.x)
+            goons.splice(i, 1);
           if (checkCollision(player, goons[i])) {
             gameState = "combat";
           }
         }
-        // Example: If player reaches right edge of world, advance to next country (or boss)
+        // Advance to next country or boss fight when reaching right edge
         if (player.x + player.width >= worldBounds.x + worldBounds.width) {
           if (currentCountry < countries.length - 1) {
-            // Move to next country
             player.x = worldBounds.x + 10;
             enterCountry(currentCountry + 1);
           } else {
-            // After last country, enter boss fight
-            gameState = "bossFight";
+            enterCastle(); // Enter the castle for boss fight
           }
         }
-
-        // (Optional) You can spawn coins randomly in world too for extra currency
+        // Spawn coins randomly
         coinTimer += deltaTime;
         if (coinTimer > 3000) {
-          // Create a coin at a random position in the world
           coins.push({
             x: worldBounds.x + Math.random() * worldBounds.width,
             y: worldBounds.y + Math.random() * worldBounds.height,
             width: 20,
             height: 20,
-            speed: 0, // coins are static
+            speed: 0,
             color: "gold",
           });
           coinTimer = 0;
@@ -354,192 +681,428 @@
           }
         }
       } else if (gameState === "bossFight") {
-        // Boss can now fight back!
-        boss.y += Math.sin(Date.now() / 500) * boss.speed;
-        // Boss shoots bullets periodically
-        if (Math.random() < 0.02) {
-          bullets.push({
-            x: boss.x,
-            y: boss.y + boss.height / 2 - 5,
-            width: 10,
-            height: 5,
-            speed: -bulletSpeed,
-            color: "red",
-          });
+        // Player movement in castle maze
+        let newX = player.x;
+        let newY = player.y;
+        
+        if (keys["ArrowUp"]) newY -= player.speed;
+        if (keys["ArrowDown"]) newY += player.speed;
+        if (keys["ArrowLeft"]) newX -= player.speed;
+        if (keys["ArrowRight"]) newX += player.speed;
+        
+        // Check wall collisions before updating position
+        if (!checkWallCollisions(newX, player.y)) {
+          player.x = newX;
         }
-        // Update boss bullets
-        for (let i = bullets.length - 1; i >= 0; i--) {
-          bullets[i].x += bullets[i].speed;
-          if (bullets[i].x + bullets[i].width < worldBounds.x)
-            bullets.splice(i, 1);
-          else if (checkCollision(bullets[i], player)) {
+        
+        if (!checkWallCollisions(player.x, newY)) {
+          player.y = newY;
+        }
+        
+        // Update camera in bossFight
+        camera.x = player.x - canvas.width / 2 + player.width / 2;
+        camera.y = player.y - canvas.height / 2 + player.height / 2;
+        camera.x = Math.max(0, Math.min(camera.x, castleSize.width - canvas.width));
+        camera.y = Math.max(0, Math.min(camera.y, castleSize.height - canvas.height));
+        
+        // Boss AI
+        const distanceToPlayer = Math.sqrt(
+          Math.pow(boss.x - player.x, 2) + Math.pow(boss.y - player.y, 2)
+        );
+        
+        // Boss moves toward player if not too close
+        if (distanceToPlayer > 150) {
+          const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
+          let newBossX = boss.x + Math.cos(angle) * boss.speed;
+          let newBossY = boss.y + Math.sin(angle) * boss.speed;
+          
+          // Check if boss would collide with walls
+          const bossRect = {
+            x: newBossX,
+            y: boss.y,
+            width: boss.width,
+            height: boss.height
+          };
+          
+          if (!castleWalls.some(wall => checkCollision(bossRect, wall))) {
+            boss.x = newBossX;
+          }
+          
+          bossRect.x = boss.x;
+          bossRect.y = newBossY;
+          
+          if (!castleWalls.some(wall => checkCollision(bossRect, wall))) {
+            boss.y = newBossY;
+          }
+        }
+        
+        // Boss attacks
+        boss.attackCooldown -= deltaTime;
+        if (boss.attackCooldown <= 0 && distanceToPlayer < boss.attackRange) {
+          // Create a new projectile
+          const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
+          boss.attackProjectiles.push({
+            x: boss.x + boss.width / 2,
+            y: boss.y + boss.height / 2,
+            radius: 10,
+            speed: 3,
+            angle: angle,
+            color: "red"
+          });
+          
+          boss.attackCooldown = boss.attackRate;
+        }
+        
+        // Update boss projectiles
+        for (let i = boss.attackProjectiles.length - 1; i >= 0; i--) {
+          const proj = boss.attackProjectiles[i];
+          proj.x += Math.cos(proj.angle) * proj.speed;
+          proj.y += Math.sin(proj.angle) * proj.speed;
+          
+          // Check if projectile hits player
+          const distance = Math.sqrt(
+            Math.pow(proj.x - (player.x + player.width / 2), 2) + 
+            Math.pow(proj.y - (player.y + player.height / 2), 2)
+          );
+          
+          if (distance < proj.radius + player.width / 2) {
+            // Player takes damage if not invulnerable
+            if (!player.invulnerable) {
+              player.health -= boss.damage;
+              player.invulnerable = true;
+              player.invulnerableTimer = player.invulnerableDuration;
+              
+              // Game over if player health reaches 0
+              if (player.health <= 0) {
+                gameState = "over";
+              }
+            }
+            
+            // Remove projectile
+            boss.attackProjectiles.splice(i, 1);
+          }
+          
+          // Remove projectiles that hit walls
+          else if (castleWalls.some(wall => {
+            return (
+              proj.x > wall.x && 
+              proj.x < wall.x + wall.width && 
+              proj.y > wall.y && 
+              proj.y < wall.y + wall.height
+            );
+          })) {
+            boss.attackProjectiles.splice(i, 1);
+          }
+          
+          // Remove projectiles that go off-screen
+          else if (
+            proj.x < 0 || 
+            proj.x > castleSize.width || 
+            proj.y < 0 || 
+            proj.y > castleSize.height
+          ) {
+            boss.attackProjectiles.splice(i, 1);
+          }
+        }
+        
+        // Check collision with boss (direct damage if touching)
+        if (checkCollision(player, boss) && !player.invulnerable) {
+          player.health -= boss.damage * 2; // Double damage for direct contact
+          player.invulnerable = true;
+          player.invulnerableTimer = player.invulnerableDuration;
+          
+          // Game over if player health reaches 0
+          if (player.health <= 0) {
             gameState = "over";
           }
         }
-        // Player opponent actions remain similar
-        if (keys["ArrowUp"] && player.y > worldBounds.y)
-          player.y -= player.speed;
-        if (
-          keys["ArrowDown"] &&
-          player.y + player.height < worldBounds.y + worldBounds.height
-        )
-          player.y += player.speed;
-        if (keys["ArrowLeft"] && player.x > worldBounds.x)
-          player.x -= player.speed;
-        if (
-          keys["ArrowRight"] &&
-          player.x + player.width < worldBounds.x + worldBounds.width
-        )
-          player.x += player.speed;
-        // Update camera in bossFight (similar to world)
-        camera.x = player.x - canvas.width / 2 + player.width / 2;
-        camera.y = player.y - canvas.height / 2 + player.height / 2;
-        camera.x = Math.max(
-          worldBounds.x,
-          Math.min(camera.x, worldBounds.width - canvas.width)
-        );
-        camera.y = Math.max(
-          worldBounds.y,
-          Math.min(camera.y, worldBounds.height - canvas.height)
-        );
-        // Update player shooting (gun) handled by key event "s"
-        // Bullets from player are already moving rightwards in event handler
-        for (let i = bullets.length - 1; i >= 0; i--) {
-          // Check player bullets collision with boss
-          if (checkCollision(bullets[i], boss)) {
-            boss.hp--;
-            bullets.splice(i, 1);
-            if (boss.hp <= 0) {
-              gameState = "win";
-            }
-          }
-        }
-        // Collision between boss and player
-        if (checkCollision(player, boss)) {
-          gameState = "over";
-        }
       }
+
       // Country name animation timer
       if (countryNameDisplayTime > 0) countryNameDisplayTime -= deltaTime;
     }
 
     function draw() {
-      // Clear the entire visible canvas *before* any camera transforms
+      // Clear canvas before drawing
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // --- World Drawing (with camera) ---
-      ctx.save(); // Save context state before applying camera
-      ctx.translate(-camera.x, -camera.y); // Apply camera offset
+      // --- World Drawing with Camera ---
+      ctx.save();
+      ctx.translate(-camera.x, -camera.y);
 
-      // Draw background (simple ground)
-      ctx.fillStyle = "#7CFC00";
-      ctx.fillRect(
-        worldBounds.x,
-        worldBounds.y + worldBounds.height - 100,
-        worldBounds.width,
-        100
-      );
+      if (gameState === "world" || gameState === "combat" || gameState === "talk") {
+        // Draw country-specific background
+        const bg = countries[currentCountry].background;
+        
+        // Sky gradient
+        const skyGradient = ctx.createLinearGradient(0, 0, 0, worldBounds.height - 100);
+        skyGradient.addColorStop(0, bg.sky);
+        skyGradient.addColorStop(1, "#FFFFFF");
+        ctx.fillStyle = skyGradient;
+        ctx.fillRect(worldBounds.x, worldBounds.y, worldBounds.width, worldBounds.height - 100);
+        
+        // Mountains in background
+        ctx.fillStyle = bg.mountains;
+        for (let i = 0; i < 5; i++) {
+          const mountainHeight = 100 + Math.sin(i * 0.7) * 50;
+          const mountainWidth = 300;
+          const x = i * 400;
+          ctx.beginPath();
+          ctx.moveTo(x, worldBounds.height - 100 - mountainHeight);
+          ctx.lineTo(x + mountainWidth / 2, worldBounds.height - 100);
+          ctx.lineTo(x + mountainWidth, worldBounds.height - 100 - mountainHeight);
+          ctx.closePath();
+          ctx.fill();
+        }
+        
+        // Ground
+        ctx.fillStyle = bg.ground;
+        ctx.fillRect(worldBounds.x, worldBounds.y + worldBounds.height - 100, worldBounds.width, 100);
+        
+        // Trees or environment objects
+        ctx.fillStyle = bg.trees;
+        for (let i = 0; i < 10; i++) {
+          const treeHeight = 60 + Math.random() * 40;
+          const treeWidth = 30;
+          const x = i * 200 + Math.random() * 100;
+          const y = worldBounds.height - 100 - treeHeight;
+          
+          // Tree trunk
+          ctx.fillStyle = "#8B4513";
+          ctx.fillRect(x + treeWidth / 3, y + treeHeight / 2, treeWidth / 3, treeHeight / 2);
+          
+          // Tree top
+          ctx.fillStyle = bg.trees;
+          ctx.beginPath();
+          ctx.moveTo(x, y + treeHeight / 2);
+          ctx.lineTo(x + treeWidth / 2, y);
+          ctx.lineTo(x + treeWidth, y + treeHeight / 2);
+          ctx.closePath();
+          ctx.fill();
+          
+          ctx.beginPath();
+          ctx.moveTo(x, y + treeHeight / 3);
+          ctx.lineTo(x + treeWidth / 2, y - treeHeight / 4);
+          ctx.lineTo(x + treeWidth, y + treeHeight / 3);
+          ctx.closePath();
+          ctx.fill();
+        }
+      } else if (gameState === "bossFight") {
+        // Draw castle background
+        // Stone floor
+        ctx.fillStyle = "#A9A9A9";
+        ctx.fillRect(0, 0, castleSize.width, castleSize.height);
+        
+        // Stone pattern
+        ctx.strokeStyle = "#696969";
+        ctx.lineWidth = 1;
+        for (let x = 0; x < castleSize.width; x += 40) {
+          for (let y = 0; y < castleSize.height; y += 40) {
+            ctx.strokeRect(x, y, 40, 40);
+          }
+        }
+        
+        // Draw castle walls
+        castleWalls.forEach(wall => {
+          // Wall base
+          ctx.fillStyle = wall.color;
+          ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+          
+          // Wall detail (stone pattern)
+          ctx.fillStyle = "#696969";
+          const stoneSize = 10;
+          for (let x = wall.x; x < wall.x + wall.width; x += stoneSize) {
+            for (let y = wall.y; y < wall.y + wall.height; y += stoneSize) {
+              if (Math.random() > 0.7) {
+                ctx.fillRect(x, y, stoneSize, stoneSize);
+              }
+            }
+          }
+        });
+        
+        // Draw boss attack projectiles
+        boss.attackProjectiles.forEach(proj => {
+          ctx.fillStyle = proj.color;
+          ctx.beginPath();
+          ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
 
-      // Draw coins in world
+      // Draw coins
       coins.forEach((c) => {
         ctx.fillStyle = c.color;
-        ctx.fillRect(c.x, c.y, c.width, c.height);
+        ctx.beginPath();
+        ctx.arc(c.x + c.width / 2, c.y + c.height / 2, c.width / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#B8860B";
+        ctx.lineWidth = 2;
+        ctx.stroke();
       });
 
       // Draw goons
       goons.forEach((g) => {
         ctx.fillStyle = g.color;
         ctx.fillRect(g.x, g.y, g.width, g.height);
-        // Draw label centered in goon
-        ctx.save(); // Save state before changing text properties
+        ctx.save();
         ctx.fillStyle = "white";
         ctx.font = "12px monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("goon", g.x + g.width / 2, g.y + g.height / 2);
-        ctx.restore(); // Restore text properties
+        ctx.restore();
       });
 
-      // Draw NPC shacks (as simple rectangles)
+      // Draw NPC shacks
       activeNPCs.forEach((npc) => {
-        ctx.fillStyle = npc.type === "shop" ? "#555" : "#333";
-        // Use npc width/height for drawing
+        // Shack base
+        ctx.fillStyle = npc.type === "shop" ? "#8B4513" : "#654321";
         ctx.fillRect(npc.x, npc.y, npc.width, npc.height);
+        
+        // Shack roof
+        ctx.fillStyle = npc.type === "shop" ? "#A52A2A" : "#800000";
+        ctx.beginPath();
+        ctx.moveTo(npc.x - 5, npc.y);
+        ctx.lineTo(npc.x + npc.width / 2, npc.y - 15);
+        ctx.lineTo(npc.x + npc.width + 5, npc.y);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Door
+        ctx.fillStyle = "#4B3621";
+        ctx.fillRect(npc.x + npc.width / 2 - 5, npc.y + npc.height - 15, 10, 15);
+        
+        // Sign
         ctx.save();
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = "#FAEBD7";
         ctx.font = "10px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        // Center text within the npc bounds
-        ctx.fillText(npc.type, npc.x + npc.width / 2, npc.y + npc.height / 2);
+        ctx.fillText(npc.type, npc.x + npc.width / 2, npc.y - 25);
         ctx.restore();
       });
 
       // Draw player
-      ctx.fillStyle = player.color;
+      if (player.invulnerable && Math.floor(Date.now() / 100) % 2 === 0) {
+        // Flashing effect when invulnerable
+        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+      } else {
+        ctx.fillStyle = player.color;
+      }
       ctx.fillRect(player.x, player.y, player.width, player.height);
 
-      // Draw boss and its bullets in bossFight
+      // Draw boss (only in bossFight)
       if (gameState === "bossFight") {
+        // Boss body
         ctx.fillStyle = boss.color;
         ctx.fillRect(boss.x, boss.y, boss.width, boss.height);
-        // Boss health bar
+        
+        // Boss crown
+        ctx.fillStyle = "gold";
+        ctx.beginPath();
+        ctx.moveTo(boss.x, boss.y);
+        ctx.lineTo(boss.x + boss.width / 2, boss.y - 20);
+        ctx.lineTo(boss.x + boss.width, boss.y);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Boss eyes
+        ctx.fillStyle = "white";
+        ctx.fillRect(boss.x + boss.width / 4, boss.y + boss.height / 4, 10, 10);
+        ctx.fillRect(boss.x + boss.width * 3/4 - 10, boss.y + boss.height / 4, 10, 10);
+        
         ctx.fillStyle = "red";
-        ctx.fillRect(boss.x, boss.y - 20, boss.hp * 20, 10); // Assuming max HP relates to this width
-        bullets.forEach((b) => {
-          ctx.fillStyle = b.color; // Ensure bullet color is set before drawing
-          ctx.fillRect(b.x, b.y, b.width, b.height);
-        });
+        ctx.fillRect(boss.x + boss.width / 4 + 2, boss.y + boss.height / 4 + 2, 6, 6);
+        ctx.fillRect(boss.x + boss.width * 3/4 - 8, boss.y + boss.height / 4 + 2, 6, 6);
+        
+        // Boss mouth
+        ctx.fillStyle = "black";
+        ctx.fillRect(boss.x + boss.width / 4, boss.y + boss.height * 2/3, boss.width / 2, 5);
       }
 
-      ctx.restore(); // Restore context state after camera transform
+      ctx.restore();
 
-      // --- Overlay UI Drawing (drawn directly on canvas, ignoring camera) ---
+      // --- Overlay UI (ignores camera) ---
       ctx.fillStyle = "black";
       ctx.font = "20px sans-serif";
       ctx.fillText(`Coins: ${score}`, 10, 25);
-      ctx.fillText(
-        `Weapon: ${player.hasGun ? "Gun & Sword" : "Sword"}`,
-        10,
-        50
-      );
-      // Position country name relative to canvas width
-      ctx.textAlign = "right"; // Align text to the right
-      ctx.fillText(`Country: ${countries[currentCountry].name}`, canvas.width - 10, 25);
-      ctx.textAlign = "left"; // Reset alignment for other text
+      ctx.fillText(`Weapon: ${player.hasGun ? "Gun & Sword" : "Sword"}`, 10, 50);
+      // Display speedrun timer (in seconds)
+      ctx.fillText(`Time: ${(speedrunTime / 1000).toFixed(2)} sec`, 10, 75);
+      
+      // Player health bar
+      ctx.fillStyle = "black";
+      ctx.fillRect(10, 95, 200, 20);
+      
+      // Health bar color based on health percentage
+      const healthPercent = player.health / player.maxHealth;
+      if (healthPercent > 0.6) {
+        ctx.fillStyle = "green";
+      } else if (healthPercent > 0.3) {
+        ctx.fillStyle = "yellow";
+      } else {
+        ctx.fillStyle = "red";
+      }
+      
+      ctx.fillRect(12, 97, 196 * healthPercent, 16);
+      ctx.fillStyle = "white";
+      ctx.font = "14px sans-serif";
+      ctx.fillText(`Health: ${player.health}/${player.maxHealth}`, 15, 110);
+      
+      ctx.fillStyle = "black";
+      ctx.textAlign = "right";
+      if (gameState === "world" || gameState === "combat" || gameState === "talk") {
+        ctx.fillText(`Country: ${countries[currentCountry].name}`, canvas.width - 10, 25);
+      } else if (gameState === "bossFight") {
+        ctx.fillText(`Location: Castle Dungeon`, canvas.width - 10, 25);
+      }
+      ctx.textAlign = "left";
 
       if (gameState === "bossFight") {
+        // Boss health bar at top of screen
+        ctx.fillStyle = "black";
+        ctx.fillRect(canvas.width / 2 - 100, 10, 200, 20);
+        
+        const bossHealthPercent = boss.hp / boss.maxHp;
+        ctx.fillStyle = bossHealthPercent > 0.5 ? "purple" : "red";
+        ctx.fillRect(canvas.width / 2 - 98, 12, 196 * bossHealthPercent, 16);
+        
+        ctx.fillStyle = "white";
+        ctx.font = "14px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("Boss Fight!", canvas.width / 2, 25);
-        ctx.textAlign = "left"; // Reset alignment
+        ctx.fillText(`Boss: ${boss.hp}/${boss.maxHp}`, canvas.width / 2, 25);
+        ctx.textAlign = "left";
+        
+        ctx.fillStyle = "black";
+        ctx.font = "16px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Get close to the boss and press SPACE to attack!", canvas.width / 2, 50);
+        ctx.textAlign = "left";
       }
 
-      // Display country name animation
+      // Country name animation
       if (countryNameDisplayTime > 0) {
-        ctx.fillStyle =
-          "rgba(0,0,0," +
-          countryNameDisplayTime / COUNTRY_NAME_DISPLAY_DURATION +
-          ")";
+        ctx.fillStyle = "rgba(0,0,0," + countryNameDisplayTime / COUNTRY_NAME_DISPLAY_DURATION + ")";
         ctx.font = "40px serif";
         ctx.textAlign = "center";
         ctx.fillText(countries[currentCountry].name, canvas.width / 2, 150);
-        ctx.textAlign = "left"; // Reset alignment
+        ctx.textAlign = "left";
       }
 
       // Title screen
       if (gameState === "start") {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Semi-transparent background
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "white";
         ctx.font = "30px monospace";
         ctx.textAlign = "center";
         ctx.fillText("GOONERBAIT 3D Adventure", canvas.width / 2, 250);
         ctx.font = "20px sans-serif";
-        ctx.fillText("Press SPACE to start your journey", canvas.width / 2, 300);
-        ctx.textAlign = "left"; // Reset alignment
+        ctx.fillText("Press RIGHT ARROW to start your journey", canvas.width / 2, 300);
+        ctx.textAlign = "left";
       }
 
-      // Win and Game Over screens (ensure restart button is visible)
+      // Win and Game Over screens
       if (gameState === "win" || gameState === "over") {
         ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -547,14 +1110,28 @@
         ctx.font = "40px monospace";
         ctx.textAlign = "center";
         if (gameState === "win") {
-          ctx.fillText("YOU DEFEATED THE BOSS!", canvas.width / 2, 300);
+          ctx.fillText("YOU DEFEATED THE BOSS!", canvas.width / 2, 250);
+          ctx.font = "24px sans-serif";
+          ctx.fillText(`Your time: ${(finalTime / 1000).toFixed(2)} seconds`, canvas.width / 2, 300);
+          ctx.font = "18px sans-serif";
+          ctx.fillText("Click 'View Records' to see the leaderboard", canvas.width / 2, 340);
         } else {
-          ctx.fillText("GAME OVER", canvas.width / 2, 300);
+          ctx.fillText("GAME OVER", canvas.width / 2, 250);
+          ctx.font = "24px sans-serif";
+          ctx.fillText("The boss defeated you!", canvas.width / 2, 300);
         }
-        document.getElementById("restartBtn").style.display = "block"; // Show restart button
-        ctx.textAlign = "left"; // Reset alignment
+        document.getElementById("restartBtn").style.display = "inline-block";
+        if (gameState === "win") {
+          document.getElementById("viewRecordsBtn").style.display = "inline-block";
+        } else {
+          document.getElementById("viewRecordsBtn").style.display = "none";
+        }
+        ctx.textAlign = "left";
       } else {
-        document.getElementById("restartBtn").style.display = "none"; // Hide restart button otherwise
+        document.getElementById("restartBtn").style.display = "none";
+        if (gameState !== "records") {
+          document.getElementById("viewRecordsBtn").style.display = "none";
+        }
       }
     }
 
@@ -563,9 +1140,12 @@
       if (!lastTime) lastTime = timestamp;
       const deltaTime = timestamp - lastTime;
       lastTime = timestamp;
-
-      update(deltaTime);
-      draw();
+      
+      if (gameState !== "records") {
+        update(deltaTime);
+        draw();
+      }
+      
       requestAnimationFrame(gameLoop);
     }
 
@@ -576,15 +1156,104 @@
       player.x = 100;
       player.y = 300;
       player.hasGun = false;
+      player.health = player.maxHealth;
+      player.invulnerable = false;
       goons.length = 0;
       coins.length = 0;
       bullets.length = 0;
       activeNPCs = [];
       countryNameDisplayTime = 0;
-      boss.hp = 10; // Reset boss health
+      boss.hp = boss.maxHp; // Reset boss health
+      boss.attackProjectiles = [];
+      speedrunTime = 0; // Reset speedrun timer
+      finalTime = 0;
       document.getElementById("restartBtn").style.display = "none";
+      document.getElementById("viewRecordsBtn").style.display = "none";
+      recordBoard.style.display = "none";
     }
 
+    // Record board functions
+    function showRecordBoard() {
+      gameState = "records";
+      updateRecordList();
+      recordBoard.style.display = "block";
+    }
+
+    function closeRecordBoard() {
+      recordBoard.style.display = "none";
+      if (finalTime > 0) {
+        gameState = "win";
+      } else {
+        gameState = "start";
+      }
+    }
+
+    function submitRecord() {
+      const playerName = playerNameInput.value.trim();
+      if (!playerName) {
+        alert("Please enter your name!");
+        return;
+      }
+
+      const newRecord = {
+        name: playerName,
+        time: finalTime,
+        date: new Date().toLocaleDateString()
+      };
+
+      speedrunRecords.push(newRecord);
+      
+      // Sort records by time (ascending)
+      speedrunRecords.sort((a, b) => a.time - b.time);
+      
+      // Keep only top 10 records
+      if (speedrunRecords.length > 10) {
+        speedrunRecords = speedrunRecords.slice(0, 10);
+      }
+      
+      // Save to localStorage
+      localStorage.setItem('speedrunRecords', JSON.stringify(speedrunRecords));
+      
+      // Update the displayed list
+      updateRecordList();
+      
+      // Clear the input
+      playerNameInput.value = "";
+      
+      alert("Record submitted successfully!");
+    }
+
+    function updateRecordList() {
+      // Clear the current list
+      recordList.innerHTML = "";
+      
+      // Add each record to the list
+      speedrunRecords.forEach((record, index) => {
+        const li = document.createElement("li");
+        
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "record-name";
+        nameSpan.textContent = `${index + 1}. ${record.name}`;
+        
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "record-time";
+        timeSpan.textContent = `${(record.time / 1000).toFixed(2)}s`;
+        
+        li.appendChild(nameSpan);
+        li.appendChild(timeSpan);
+        recordList.appendChild(li);
+      });
+      
+      // Show a message if no records
+      if (speedrunRecords.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "No records yet. Be the first!";
+        recordList.appendChild(li);
+      }
+    }
+
+    // Initialize the game
+    initCastleMaze();
     requestAnimationFrame(gameLoop);
   </script>
 </body>
