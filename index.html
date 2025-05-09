@@ -10,6 +10,7 @@
       overflow: hidden;
       text-align: center;
       font-family: sans-serif;
+      background-color: #000;
     }
 
     canvas {
@@ -18,11 +19,52 @@
       margin: 0 auto;
     }
 
-    #restartBtn {
+    #ui-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .game-button {
       display: none;
-      margin-top: 20px;
       padding: 10px 20px;
       font-size: 16px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .game-button:hover {
+      background: #45a049;
+    }
+
+    #restartBtn {
+      background: #f44336;
+    }
+
+    #restartBtn:hover {
+      background: #d32f2f;
+    }
+
+    #viewRecordsBtn {
+      background: #2196f3;
+    }
+
+    #viewRecordsBtn:hover {
+      background: #0b7dda;
+    }
+
+    #continueBtn {
+      background: #ff9800;
+    }
+
+    #continueBtn:hover {
+      background: #f57c00;
     }
 
     #dialogBox {
@@ -36,6 +78,9 @@
       color: #fff;
       font-family: sans-serif;
       display: none;
+      border-radius: 10px;
+      border: 2px solid #fff;
+      z-index: 100;
     }
 
     #recordBoard {
@@ -49,11 +94,14 @@
       color: #fff;
       border-radius: 10px;
       display: none;
+      z-index: 100;
+      border: 2px solid gold;
     }
 
     #recordBoard h2 {
       margin-top: 0;
       color: gold;
+      text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
     }
 
     #recordList {
@@ -61,6 +109,8 @@
       padding: 0;
       margin: 0;
       text-align: left;
+      max-height: 300px;
+      overflow-y: auto;
     }
 
     #recordList li {
@@ -97,7 +147,7 @@
 
     #submitForm button {
       padding: 8px;
-      background: #4CAF50;
+      background: #4caf50;
       color: white;
       border: none;
       border-radius: 4px;
@@ -122,29 +172,81 @@
       background: #d32f2f;
     }
 
-    #viewRecordsBtn {
+    #loadingScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
       display: none;
-      margin-top: 10px;
-      margin-left: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background: #2196F3;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
     }
 
-    #viewRecordsBtn:hover {
-      background: #0b7dda;
+    #loadingScreen h2 {
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    .progress-bar {
+      width: 300px;
+      height: 20px;
+      background: #333;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #4caf50, #8bc34a);
+      transition: width 0.3s;
+    }
+
+    .notification {
+      position: absolute;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 18px;
+      opacity: 0;
+      transition: opacity 0.5s;
+      z-index: 200;
+    }
+
+    .notification.show {
+      opacity: 1;
+    }
+
+    .minimap {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 200px;
+      height: 200px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid white;
+      border-radius: 5px;
+      z-index: 50;
     }
   </style>
 </head>
 
 <body>
-  <canvas id="gamecanvs"></canvas>
-  <button id="restartBtn">Restart</button>
-  <button id="viewRecordsBtn">View Records</button>
+  <canvas id="gameCanvas"></canvas>
+  <div id="ui-container">
+    <button id="restartBtn" class="game-button">Restart</button>
+    <button id="viewRecordsBtn" class="game-button">View Records</button>
+    <button id="continueBtn" class="game-button">Continue Game</button>
+  </div>
   <div id="dialogBox"></div>
   <div id="recordBoard">
     <h2>Speedrun Records</h2>
@@ -155,155 +257,759 @@
     </div>
     <button id="closeRecordBtn">Close</button>
   </div>
-  <script>
-    const canvas = document.getElementById("gamecanvs");
-    const ctx = canvas.getContext("2d");
-    canvas.width = 800;
-    canvas.height = 600;
+  <div id="loadingScreen">
+    <h2>Loading Level...</h2>
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+  </div>
 
-    // Game States: 'start', 'world', 'talk', 'combat', 'bossFight', 'win', 'over', 'records'
+  <script>
+    // ===== GAME ENGINE =====
+    
+    // Canvas setup
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Handle window resizing
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Game States: 'start', 'loading', 'world', 'talk', 'combat', 'bossFight', 'win', 'over', 'records'
     let gameState = "start";
 
     // Global Speedrun Timer (in ms)
     let speedrunTime = 0;
     let finalTime = 0;
+    let lastTime = 0;
+    let isPaused = false;
 
-    // Speedrun Records
-    let speedrunRecords = JSON.parse(localStorage.getItem('speedrunRecords')) || [];
-
-    // World & Story Variables
-    const countries = [
-      {
-        name: "Old Kingdom",
-        goonDensity: 1,
-        background: {
-          sky: "#87CEEB", // Light blue sky
-          ground: "#7CFC00", // Green grass
-          mountains: "#8B4513", // Brown mountains
-          trees: "#228B22" // Forest green trees
-        },
-        npcs: [
-          {
-            x: 300,
-            y: 400,
-            type: "talk",
-            dialog: "The ghost of the goon haunts these lands. Follow the river north.",
-          },
-          {
-            x: 600,
-            y: 200,
-            type: "shop",
-            dialog: "Buy a gun for 5 coins? Press E to buy.",
-            cost: 5,
-          },
-        ],
-      },
-      {
-        name: "Desert Realm",
-        goonDensity: 2,
-        background: {
-          sky: "#FFD700", // Golden sky
-          ground: "#F4A460", // Sandy brown
-          mountains: "#D2B48C", // Tan mountains
-          trees: "#DAA520" // Golden rod (desert plants)
-        },
-        npcs: [
-          {
-            x: 200,
-            y: 300,
-            type: "talk",
-            dialog: "In the heat of the desert, the ghost roams. Seek the oasis.",
-          },
-        ],
-      },
-      {
-        name: "Frozen Tundra",
-        goonDensity: 3,
-        background: {
-          sky: "#B0E0E6", // Powder blue sky
-          ground: "#F0FFFF", // Snow white
-          mountains: "#A9A9A9", // Dark gray mountains
-          trees: "#008080" // Teal (pine trees)
-        },
-        npcs: [
-          {
-            x: 500,
-            y: 350,
-            type: "talk",
-            dialog: "The cold hides many secrets. The ghost is near the ice cave.",
-          },
-        ],
-      },
-    ];
-    let currentCountry = 0;
-    let countryNameDisplayTime = 0; // when >0, display cool title animation
-    const COUNTRY_NAME_DISPLAY_DURATION = 3000; // 3 seconds
-
-    // Currency & Equipment
-    let score = 0; // coins
+    // Game objects
     const player = {
       x: 100,
       y: 300,
       width: 30,
       height: 30,
-      speed: 4, // This is now a constant and cannot be changed during gameplay
+      speed: 4,
       color: "red",
-      weapon: "sword", // Always have a sword
+      weapon: "sword",
       hasGun: false,
-      health: 100, // Player health
+      health: 100,
       maxHealth: 100,
-      invulnerable: false, // Invulnerability after taking damage
+      invulnerable: false,
       invulnerableTimer: 0,
-      invulnerableDuration: 1000 // 1 second of invulnerability
+      invulnerableDuration: 1000,
+      coins: 0,
+      experience: 0,
+      level: 1,
     };
 
-    // World boundaries
-    const worldBounds = { x: 0, y: 0, width: 1600, height: 1200 };
-    // We'll simulate a camera following the player
-    let camera = { x: 0, y: 0 };
+    // Camera system
+    const camera = {
+      x: 0,
+      y: 0,
+      width: canvas.width,
+      height: canvas.height,
+      follow: function (target) {
+        // Calculate desired camera position (centered on target)
+        const targetX = target.x - this.width / 2 + target.width / 2;
+        const targetY = target.y - this.height / 2 + target.height / 2;
 
-    // Goons spawn (ambient enemies)
-    const goons = [];
-    let goonTimer = 0;
-    const baseGoonInterval = 2000; // ms, modified by country's goonDensity
+        // Smoothly move camera toward target (easing)
+        this.x += (targetX - this.x) * 0.1;
+        this.y += (targetY - this.y) * 0.1;
 
-    // Coins
-    const coins = [];
-    let coinTimer = 0;
+        // Clamp camera to world bounds
+        this.x = Math.max(0, Math.min(this.x, currentLevel.width - this.width));
+        this.y = Math.max(0, Math.min(this.y, currentLevel.height - this.height));
+      },
+    };
 
-    // NPCs currently in the world (from current country)
+    // Game levels
+    const levels = [];
+    let currentLevel = null;
+    let currentLevelIndex = 0;
+
+    // Game objects collections
+    let goons = [];
+    let coins = [];
+    let bullets = [];
     let activeNPCs = [];
-    // Dialog management
-    const dialogBox = document.getElementById("dialogBox");
-    let currentDialog = "";
+
+    // Timers
+    let goonTimer = 0;
+    let coinTimer = 0;
+    let countryNameDisplayTime = 0;
+    const COUNTRY_NAME_DISPLAY_DURATION = 3000;
+
+    // Input handling
+    const keys = {};
     let dialogActive = false;
-
-    // Bullets for combat (only used in 'combat' state)
-    const bullets = [];
-    const bulletSpeed = 6;
-
-    // Castle maze for boss fight
-    const castleWalls = [];
-    const castleSize = { width: 1600, height: 1200 };
     
-    // Final Boss (appears in bossFight state)
-    const boss = {
-      x: castleSize.width - 150,
-      y: castleSize.height / 2,
-      width: 60,
-      height: 60,
-      hp: 20,
-      maxHp: 20,
-      color: "purple",
-      speed: 1.5,
-      attackRange: 200,
-      attackCooldown: 0,
-      attackRate: 2000, // ms between attacks
-      damage: 10,
-      attackProjectiles: []
-    };
+    window.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
 
-    // Record board elements
+      // Prevent scrolling with arrow keys
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+        e.preventDefault();
+      }
+
+      handleKeyPress(e.key);
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    function handleKeyPress(key) {
+      // Exit dialog with Escape key
+      if (key === "Escape" && dialogActive) {
+        hideDialog();
+        gameState = "world";
+      }
+
+      // Start game with RIGHT ARROW
+      if (key === "ArrowRight" && gameState === "start") {
+        startNewGame();
+      }
+
+      // Handle SPACE key for boss fight
+      if (key === " " && gameState === "bossFight") {
+        attackBoss();
+      }
+
+      // Shoot gun in combat
+      if (key.toLowerCase() === "s" && (gameState === "combat" || gameState === "world") && player.hasGun) {
+        shootGun();
+      }
+
+      // Interact with NPCs
+      if (key.toLowerCase() === "e" && gameState === "world") {
+        interactWithNPC();
+      }
+
+      // Pause game
+      if (key.toLowerCase() === "p" && (gameState === "world" || gameState === "combat" || gameState === "bossFight")) {
+        togglePause();
+      }
+    }
+
+    function togglePause() {
+      isPaused = !isPaused;
+      showNotification(isPaused ? "Game Paused" : "Game Resumed");
+    }
+
+    function shootGun() {
+      const direction = getPlayerDirection();
+
+      bullets.push({
+        x: player.x + player.width / 2,
+        y: player.y + player.height / 2,
+        radius: 5,
+        speed: 8,
+        direction: direction,
+        damage: 5,
+        color: "black",
+        lifetime: 2000, // Bullets disappear after 2 seconds
+        timeLeft: 2000,
+      });
+    }
+
+    function getPlayerDirection() {
+      // Default direction (right)
+      const direction = { x: 1, y: 0 };
+
+      // Calculate direction based on key presses
+      if (keys["ArrowUp"]) direction.y = -1;
+      if (keys["ArrowDown"]) direction.y = 1;
+      if (keys["ArrowLeft"]) direction.x = -1;
+      if (keys["ArrowRight"]) direction.x = 1;
+
+      // Normalize direction vector
+      const magnitude = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+      if (magnitude > 0) {
+        direction.x /= magnitude;
+        direction.y /= magnitude;
+      }
+
+      return direction;
+    }
+
+    function attackBoss() {
+      if (!currentLevel.boss) return;
+
+      const distance = Math.sqrt(Math.pow(currentLevel.boss.x - player.x, 2) + Math.pow(currentLevel.boss.y - player.y, 2));
+
+      if (distance < 100) {
+        // Player must be close to boss to damage it
+        currentLevel.boss.hp -= 1;
+
+        // Visual feedback
+        currentLevel.boss.color = "red";
+        setTimeout(() => {
+          if (currentLevel.boss) {
+            currentLevel.boss.color = "purple";
+          }
+        }, 100);
+
+        if (currentLevel.boss.hp <= 0) {
+          gameState = "win";
+          finalTime = speedrunTime;
+          document.getElementById("viewRecordsBtn").style.display = "inline-block";
+          saveGameProgress({ completed: true });
+        }
+      }
+    }
+
+    function interactWithNPC() {
+      activeNPCs.forEach((npc) => {
+        if (checkCollision(player, npc)) {
+          if (npc.type === "shop") {
+            handleShopInteraction(npc);
+          } else {
+            showDialog(npc.dialog);
+          }
+        }
+      });
+    }
+
+    function handleShopInteraction(npc) {
+      if (player.coins >= npc.cost && !player.hasGun) {
+        player.coins -= npc.cost;
+        player.hasGun = true;
+        showDialog("You bought a gun! Use it with 'S' in combat.");
+        saveGameProgress();
+      } else if (player.hasGun) {
+        showDialog("You already own a gun.");
+      } else {
+        showDialog("You don't have enough coins for a gun.");
+      }
+    }
+
+    function checkCollision(a, b) {
+      return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+    }
+
+    function checkCircleRectCollision(circle, rect) {
+      // Find the closest point to the circle within the rectangle
+      const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+      const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+
+      // Calculate the distance between the circle's center and this closest point
+      const distanceX = circle.x - closestX;
+      const distanceY = circle.y - closestY;
+
+      // If the distance is less than the circle's radius, an intersection occurs
+      const distanceSquared = distanceX * distanceX + distanceY * distanceY;
+      return distanceSquared < circle.radius * circle.radius;
+    }
+
+    function checkCircleCollision(c1, c2) {
+      const dx = c1.x - c2.x;
+      const dy = c1.y - c2.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance < c1.radius + c2.radius;
+    }
+
+    function startNewGame() {
+      // Reset game state
+      gameState = "loading";
+      player.health = player.maxHealth;
+      player.coins = 0;
+      player.hasGun = false;
+      player.x = 100;
+      player.y = 300;
+      speedrunTime = 0;
+      finalTime = 0;
+      currentLevelIndex = 0;
+
+      // Show loading screen
+      showLoadingScreen("Loading Old Kingdom...");
+
+      // Load first level with delay to show loading screen
+      setTimeout(() => {
+        loadLevel(0);
+        hideLoadingScreen();
+        gameState = "world";
+        countryNameDisplayTime = COUNTRY_NAME_DISPLAY_DURATION;
+      }, 1500);
+
+      // Clear any existing game data
+      clearGameProgress();
+    }
+
+    function continueGame() {
+      const savedGame = loadGameProgress();
+      if (!savedGame) {
+        showNotification("No saved game found!");
+        return;
+      }
+
+      gameState = "loading";
+
+      // Restore player state
+      player.health = savedGame.player.health;
+      player.coins = savedGame.player.coins;
+      player.hasGun = savedGame.player.hasGun;
+      player.x = savedGame.player.x;
+      player.y = savedGame.player.y;
+
+      // Restore game progress
+      currentLevelIndex = savedGame.currentLevel;
+      speedrunTime = savedGame.speedrunTime || 0;
+
+      // Show loading screen
+      showLoadingScreen(`Loading ${levels[currentLevelIndex].name}...`);
+
+      // Load level with delay to show loading screen
+      setTimeout(() => {
+        loadLevel(currentLevelIndex);
+        hideLoadingScreen();
+        gameState = "world";
+        countryNameDisplayTime = COUNTRY_NAME_DISPLAY_DURATION;
+        showNotification("Game Loaded Successfully!");
+      }, 1500);
+    }
+
+    function loadLevel(levelIndex) {
+      if (levelIndex < 0 || levelIndex >= levels.length) {
+        console.error("Invalid level index:", levelIndex);
+        return;
+      }
+
+      currentLevelIndex = levelIndex;
+      currentLevel = levels[levelIndex];
+
+      // Reset level-specific collections
+      goons = [];
+      coins = [];
+      bullets = [];
+
+      // Set up NPCs for this level
+      activeNPCs = currentLevel.npcs.map((npc) => ({
+        ...npc,
+        width: 40,
+        height: 40,
+      }));
+
+      // Reset timers
+      goonTimer = 0;
+      coinTimer = 0;
+
+      // Update camera
+      camera.x = player.x - canvas.width / 2;
+      camera.y = player.y - canvas.height / 2;
+
+      // Initialize level-specific elements
+      if (currentLevel.init) {
+        currentLevel.init();
+      }
+
+      // Save game progress
+      saveGameProgress();
+    }
+
+    function advanceToNextLevel() {
+      if (currentLevelIndex < levels.length - 1) {
+        gameState = "loading";
+        currentLevelIndex++;
+
+        // Show loading screen
+        showLoadingScreen(`Loading ${levels[currentLevelIndex].name}...`);
+
+        // Position player at start of new level
+        player.x = 100;
+        player.y = currentLevel.height / 2;
+
+        // Load next level with delay to show loading screen
+        setTimeout(() => {
+          loadLevel(currentLevelIndex);
+          hideLoadingScreen();
+          gameState = "world";
+          countryNameDisplayTime = COUNTRY_NAME_DISPLAY_DURATION;
+        }, 1500);
+      } else {
+        // If this was the last level, enter boss fight
+        enterBossFight();
+      }
+    }
+
+    function enterBossFight() {
+      gameState = "loading";
+
+      // Show loading screen
+      showLoadingScreen("Entering Castle Dungeon...");
+
+      // Load castle level with delay to show loading screen
+      setTimeout(() => {
+        currentLevelIndex = levels.length - 1; // Castle is the last level
+        loadLevel(currentLevelIndex);
+        gameState = "bossFight";
+        hideLoadingScreen();
+        showNotification("Boss Fight Begins! Find and defeat the boss!");
+      }, 2000);
+    }
+
+    function updateGame(deltaTime) {
+      if (isPaused) return;
+
+      // Update speedrun timer
+      if (gameState !== "start" && gameState !== "records" && gameState !== "loading") {
+        speedrunTime += deltaTime;
+      }
+
+      // Update player invulnerability
+      if (player.invulnerable) {
+        player.invulnerableTimer -= deltaTime;
+        if (player.invulnerableTimer <= 0) {
+          player.invulnerable = false;
+        }
+      }
+
+      // Update based on game state
+      switch (gameState) {
+        case "world":
+        case "combat":
+          updateWorldState(deltaTime);
+          break;
+        case "bossFight":
+          updateBossFightState(deltaTime);
+          break;
+      }
+
+      // Update country name display timer
+      if (countryNameDisplayTime > 0) {
+        countryNameDisplayTime -= deltaTime;
+      }
+    }
+
+    function updateWorldState(deltaTime) {
+      // Player movement
+      movePlayer();
+
+      // Camera follows player
+      camera.follow(player);
+
+      // Spawn and update goons
+      updateGoons(deltaTime);
+
+      // Spawn and update coins
+      updateCoins(deltaTime);
+
+      // Update bullets
+      updateBullets(deltaTime);
+
+      // Check if player reached the end of the level
+      if (player.x + player.width >= currentLevel.width) {
+        advanceToNextLevel();
+      }
+    }
+
+    function updateBossFightState(deltaTime) {
+      // Player movement with wall collision detection
+      movePlayerWithCollision();
+
+      // Camera follows player
+      camera.follow(player);
+
+      // Update boss behavior
+      if (currentLevel.updateBoss) {
+        currentLevel.updateBoss(deltaTime);
+      }
+
+      // Update bullets
+      updateBullets(deltaTime);
+    }
+
+    function movePlayer() {
+      let newX = player.x;
+      let newY = player.y;
+
+      if (keys["ArrowUp"] && player.y > 0) {
+        newY -= player.speed;
+      }
+      if (keys["ArrowDown"] && player.y + player.height < currentLevel.height) {
+        newY += player.speed;
+      }
+      if (keys["ArrowLeft"] && player.x > 0) {
+        newX -= player.speed;
+      }
+      if (keys["ArrowRight"] && player.x + player.width < currentLevel.width) {
+        newX += player.speed;
+      }
+
+      player.x = newX;
+      player.y = newY;
+    }
+
+    function movePlayerWithCollision() {
+      let newX = player.x;
+      let newY = player.y;
+
+      if (keys["ArrowUp"]) newY -= player.speed;
+      if (keys["ArrowDown"]) newY += player.speed;
+      if (keys["ArrowLeft"]) newX -= player.speed;
+      if (keys["ArrowRight"]) newX += player.speed;
+
+      // Check wall collisions before updating position
+      if (!checkWallCollisions(newX, player.y)) {
+        player.x = newX;
+      }
+
+      if (!checkWallCollisions(player.x, newY)) {
+        player.y = newY;
+      }
+    }
+
+    function checkWallCollisions(newX, newY) {
+      if (!currentLevel.walls) return false;
+
+      const playerRect = {
+        x: newX,
+        y: newY,
+        width: player.width,
+        height: player.height,
+      };
+
+      for (const wall of currentLevel.walls) {
+        if (checkCollision(playerRect, wall)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    function updateGoons(deltaTime) {
+      // Spawn new goons
+      goonTimer += deltaTime;
+      if (goonTimer > 2000 / currentLevel.goonDensity) {
+        const size = Math.random() * 30 + 20;
+        const spawnY = Math.random() * (currentLevel.height - size);
+
+        // Randomly choose spawn side (left or right)
+        const spawnSide = Math.random() > 0.5 ? "left" : "right";
+        const spawnX = spawnSide === "left" ? -size : currentLevel.width;
+
+        goons.push({
+          x: spawnX,
+          y: spawnY,
+          width: size,
+          height: size,
+          speed: 0.5 + Math.random(),
+          health: 3,
+          damage: 2,
+          attackCooldown: 0,
+          attackRate: 1000,
+          color: "black",
+          direction: spawnSide === "left" ? 1 : -1,
+        });
+
+        goonTimer = 0;
+      }
+
+      // Update existing goons
+      for (let i = goons.length - 1; i >= 0; i--) {
+        const goon = goons[i];
+
+        // Calculate direction to player
+        const dx = player.x - goon.x;
+        const dy = player.y - goon.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Move toward player
+        if (distance > 50) {
+          // Don't get too close
+          goon.x += (dx / distance) * goon.speed;
+          goon.y += (dy / distance) * goon.speed;
+        }
+
+        // Attack player if close enough and cooldown is ready
+        goon.attackCooldown -= deltaTime;
+        if (distance < 60 && goon.attackCooldown <= 0) {
+          if (!player.invulnerable) {
+            player.health -= goon.damage;
+            player.invulnerable = true;
+            player.invulnerableTimer = player.invulnerableDuration;
+
+            // Game over if player health reaches 0
+            if (player.health <= 0) {
+              gameState = "over";
+              document.getElementById("restartBtn").style.display = "inline-block";
+            }
+          }
+          goon.attackCooldown = goon.attackRate;
+        }
+
+        // Check if goon is hit by bullets
+        for (let j = bullets.length - 1; j >= 0; j--) {
+          const bullet = bullets[j];
+          if (checkCircleRectCollision(bullet, goon)) {
+            goon.health -= bullet.damage;
+            bullets.splice(j, 1);
+
+            if (goon.health <= 0) {
+              // Drop a coin when goon dies (50% chance)
+              if (Math.random() > 0.5) {
+                coins.push({
+                  x: goon.x + goon.width / 2 - 10,
+                  y: goon.y + goon.height / 2 - 10,
+                  width: 20,
+                  height: 20,
+                  color: "gold",
+                });
+              }
+              goons.splice(i, 1);
+              break;
+            }
+          }
+        }
+
+        // Remove goons that go off-screen
+        if (goon.x < -100 || goon.x > currentLevel.width + 100 || goon.y < -100 || goon.y > currentLevel.height + 100) {
+          goons.splice(i, 1);
+        }
+      }
+    }
+
+    function updateCoins(deltaTime) {
+      // Spawn new coins
+      coinTimer += deltaTime;
+      if (coinTimer > 5000) {
+        coins.push({
+          x: Math.random() * (currentLevel.width - 20),
+          y: Math.random() * (currentLevel.height - 20),
+          width: 20,
+          height: 20,
+          color: "gold",
+        });
+        coinTimer = 0;
+      }
+
+      // Check coin collection
+      for (let i = coins.length - 1; i >= 0; i--) {
+        if (checkCollision(player, coins[i])) {
+          player.coins += 1;
+          coins.splice(i, 1);
+          saveGameProgress();
+        }
+      }
+    }
+
+    function updateBullets(deltaTime) {
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
+
+        // Update bullet position
+        bullet.x += bullet.direction.x * bullet.speed;
+        bullet.y += bullet.direction.y * bullet.speed;
+
+        // Update bullet lifetime
+        bullet.timeLeft -= deltaTime;
+        if (bullet.timeLeft <= 0) {
+          bullets.splice(i, 1);
+          continue;
+        }
+
+        // Check wall collisions
+        if (currentLevel.walls && currentLevel.walls.some((wall) => checkCircleRectCollision(bullet, wall))) {
+          bullets.splice(i, 1);
+          continue;
+        }
+
+        // Check if bullet is out of bounds
+        if (bullet.x < 0 || bullet.x > currentLevel.width || bullet.y < 0 || bullet.y > currentLevel.height) {
+          bullets.splice(i, 1);
+        }
+      }
+    }
+
+    function gameLoop(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      const deltaTime = timestamp - lastTime;
+      lastTime = timestamp;
+
+      if (gameState !== "records") {
+        updateGame(deltaTime);
+        renderGame();
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // ===== STORAGE SYSTEM =====
+
+    function saveGameProgress(additionalData = {}) {
+      const gameData = {
+        player: {
+          health: player.health,
+          coins: player.coins,
+          hasGun: player.hasGun,
+          x: player.x,
+          y: player.y,
+        },
+        currentLevel: currentLevelIndex,
+        speedrunTime: speedrunTime,
+        lastSaved: new Date().toISOString(),
+        ...additionalData,
+      };
+
+      localStorage.setItem("goonerbaitSave", JSON.stringify(gameData));
+    }
+
+    function loadGameProgress() {
+      const savedData = localStorage.getItem("goonerbaitSave");
+      return savedData ? JSON.parse(savedData) : null;
+    }
+
+    function clearGameProgress() {
+      localStorage.removeItem("goonerbaitSave");
+    }
+
+    function saveSpeedrunRecord(playerName, time) {
+      let records = JSON.parse(localStorage.getItem("speedrunRecords")) || [];
+
+      const newRecord = {
+        name: playerName,
+        time: time,
+        date: new Date().toISOString(),
+      };
+
+      records.push(newRecord);
+
+      // Sort records by time (ascending)
+      records.sort((a, b) => a.time - b.time);
+
+      // Keep only top 10 records
+      if (records.length > 10) {
+        records = records.slice(0, 10);
+      }
+
+      localStorage.setItem("speedrunRecords", JSON.stringify(records));
+      return records;
+    }
+
+    function getSpeedrunRecords() {
+      return JSON.parse(localStorage.getItem("speedrunRecords")) || [];
+    }
+
+    function formatTime(timeMs) {
+      const totalSeconds = timeMs / 1000;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = Math.floor(totalSeconds % 60);
+      const milliseconds = Math.floor((totalSeconds - Math.floor(totalSeconds)) * 100);
+
+      return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds.toString().padStart(2, "0")}`;
+    }
+
+    // ===== UI SYSTEM =====
+
+    // UI Elements
+    const dialogBox = document.getElementById("dialogBox");
     const recordBoard = document.getElementById("recordBoard");
     const recordList = document.getElementById("recordList");
     const playerNameInput = document.getElementById("playerName");
@@ -311,215 +1017,25 @@
     const closeRecordBtn = document.getElementById("closeRecordBtn");
     const viewRecordsBtn = document.getElementById("viewRecordsBtn");
     const restartBtn = document.getElementById("restartBtn");
+    const continueBtn = document.getElementById("continueBtn");
+    const loadingScreen = document.getElementById("loadingScreen");
+    const progressFill = document.querySelector(".progress-fill");
 
-    // Initialize castle maze
-    function initCastleMaze() {
-      castleWalls.length = 0;
-      
-      // Outer walls
-      // Top wall
-      castleWalls.push({
-        x: 0,
-        y: 0,
-        width: castleSize.width,
-        height: 40,
-        color: "#8B4513"
-      });
-      
-      // Bottom wall
-      castleWalls.push({
-        x: 0,
-        y: castleSize.height - 40,
-        width: castleSize.width,
-        height: 40,
-        color: "#8B4513"
-      });
-      
-      // Left wall
-      castleWalls.push({
-        x: 0,
-        y: 0,
-        width: 40,
-        height: castleSize.height,
-        color: "#8B4513"
-      });
-      
-      // Right wall
-      castleWalls.push({
-        x: castleSize.width - 40,
-        y: 0,
-        width: 40,
-        height: castleSize.height,
-        color: "#8B4513"
-      });
-      
-      // Maze internal walls
-      // Horizontal walls
-      castleWalls.push({
-        x: 200,
-        y: 200,
-        width: 800,
-        height: 40,
-        color: "#8B4513"
-      });
-      
-      castleWalls.push({
-        x: 600,
-        y: 400,
-        width: 800,
-        height: 40,
-        color: "#8B4513"
-      });
-      
-      castleWalls.push({
-        x: 200,
-        y: 600,
-        width: 800,
-        height: 40,
-        color: "#8B4513"
-      });
-      
-      castleWalls.push({
-        x: 600,
-        y: 800,
-        width: 800,
-        height: 40,
-        color: "#8B4513"
-      });
-      
-      // Vertical walls
-      castleWalls.push({
-        x: 400,
-        y: 240,
-        width: 40,
-        height: 160,
-        color: "#8B4513"
-      });
-      
-      castleWalls.push({
-        x: 800,
-        y: 440,
-        width: 40,
-        height: 160,
-        color: "#8B4513"
-      });
-      
-      castleWalls.push({
-        x: 400,
-        y: 640,
-        width: 40,
-        height: 160,
-        color: "#8B4513"
-      });
-      
-      castleWalls.push({
-        x: 1200,
-        y: 440,
-        width: 40,
-        height: 360,
-        color: "#8B4513"
-      });
-      
-      // Boss chamber
-      castleWalls.push({
-        x: castleSize.width - 300,
-        y: castleSize.height / 2 - 150,
-        width: 40,
-        height: 300,
-        color: "#8B4513"
-      });
-    }
+    // Dialog management
+    let currentDialog = "";
 
-    const keys = {};
-    window.addEventListener("keydown", (e) => {
-      keys[e.key] = true;
-
-      // Exit dialog with Escape key (for shop or talking)
-      if (e.key === "Escape" && dialogActive) {
-        dialogBox.style.display = "none";
-        dialogActive = false;
-        gameState = "world";
-      }
-
-      // Handle RIGHT ARROW key to start game (changed from SPACE)
-      if (e.key === "ArrowRight" && gameState === "start") {
-        gameState = "world";
-        enterCountry(0);
-      }
-
-      // Handle SPACE key for boss fight
-      if (e.key === " " && gameState === "bossFight") {
-        // Damage boss when in range
-        const distance = Math.sqrt(
-          Math.pow(boss.x - player.x, 2) + Math.pow(boss.y - player.y, 2)
-        );
-        
-        if (distance < 100) { // Player must be close to boss to damage it
-          boss.hp -= 1;
-          
-          // Visual feedback
-          boss.color = "red";
-          setTimeout(() => {
-            boss.color = "purple";
-          }, 100);
-          
-          if (boss.hp <= 0) {
-            gameState = "win";
-            finalTime = speedrunTime; // Save the final time when winning
-            viewRecordsBtn.style.display = "inline-block";
-          }
-        }
-      }
-
-      // In combat, allow shooting gun if owned using "s"
-      if (
-        e.key.toLowerCase() === "s" &&
-        gameState === "combat" &&
-        player.hasGun
-      ) {
-        bullets.push({
-          x: player.x + player.width,
-          y: player.y + player.height / 2 - 5,
-          width: 10,
-          height: 5,
-          speed: bulletSpeed,
-          color: "black",
-        });
-      }
-
-      // Interact with NPCs in the world with E
-      if (e.key.toLowerCase() === "e" && gameState === "world") {
-        activeNPCs.forEach((npc) => {
-          if (checkCollision(player, npc)) {
-            if (npc.type === "shop") {
-              if (score >= npc.cost && !player.hasGun) {
-                score -= npc.cost;
-                player.hasGun = true;
-                currentDialog = "You bought a gun! Use it with 'S' in combat.";
-              } else if (player.hasGun) {
-                currentDialog = "You already own a gun.";
-              } else {
-                currentDialog = "You don't have enough coins for a gun.";
-              }
-            } else {
-              currentDialog = npc.dialog;
-            }
-            showDialog(currentDialog);
-          }
-        });
-      }
-    });
-
-    window.addEventListener("keyup", (e) => {
-      keys[e.key] = false;
-    });
-
+    // Event listeners
     restartBtn.addEventListener("click", restartGame);
-    
-    // Record board event listeners
     submitRecordBtn.addEventListener("click", submitRecord);
     closeRecordBtn.addEventListener("click", closeRecordBoard);
     viewRecordsBtn.addEventListener("click", showRecordBoard);
+    continueBtn.addEventListener("click", continueGame);
+
+    function restartGame() {
+      startNewGame();
+      document.getElementById("restartBtn").style.display = "none";
+      document.getElementById("viewRecordsBtn").style.display = "none";
+    }
 
     function showDialog(text) {
       dialogBox.innerText = text;
@@ -528,651 +1044,11 @@
       gameState = "talk";
     }
 
-    function checkCollision(a, b) {
-      return (
-        a.x < b.x + b.width &&
-        a.x + a.width > b.x &&
-        a.y < b.y + b.height &&
-        a.y + a.height > b.y
-      );
+    function hideDialog() {
+      dialogBox.style.display = "none";
+      dialogActive = false;
     }
 
-    // When entering a new country
-    function enterCountry(index) {
-      currentCountry = index;
-      countryNameDisplayTime = COUNTRY_NAME_DISPLAY_DURATION;
-      activeNPCs = countries[currentCountry].npcs.map((npcData) => ({
-        ...npcData,
-        width: 40,
-        height: 40,
-      }));
-      goons.length = 0;
-      coins.length = 0;
-      coinTimer = 0;
-      player.x = 100;
-      player.y = 300;
-      camera.x = player.x - canvas.width / 2 + player.width / 2;
-      camera.y = player.y - canvas.height / 2 + player.height / 2;
-      camera.x = Math.max(worldBounds.x, Math.min(camera.x, worldBounds.width - canvas.width));
-      camera.y = Math.max(worldBounds.y, Math.min(camera.y, worldBounds.height - canvas.height));
-    }
-
-    // Enter boss fight castle
-    function enterCastle() {
-      gameState = "bossFight";
-      initCastleMaze();
-      player.x = 100;
-      player.y = castleSize.height / 2;
-      boss.x = castleSize.width - 150;
-      boss.y = castleSize.height / 2;
-      boss.hp = boss.maxHp;
-      boss.attackProjectiles = [];
-      camera.x = player.x - canvas.width / 2 + player.width / 2;
-      camera.y = player.y - canvas.height / 2 + player.height / 2;
-    }
-
-    // Check if player collides with any castle wall
-    function checkWallCollisions(newX, newY) {
-      const playerRect = {
-        x: newX,
-        y: newY,
-        width: player.width,
-        height: player.height
-      };
-      
-      for (const wall of castleWalls) {
-        if (checkCollision(playerRect, wall)) {
-          return true;
-        }
-      }
-      
-      return false;
-    }
-
-    // Update function (deltaTime in ms)
-    function update(deltaTime) {
-      // Only update the speedrun timer when not on the start screen and not in records view
-      if (gameState !== "start" && gameState !== "records") {
-        speedrunTime += deltaTime;
-      }
-
-      // Update player invulnerability timer
-      if (player.invulnerable) {
-        player.invulnerableTimer -= deltaTime;
-        if (player.invulnerableTimer <= 0) {
-          player.invulnerable = false;
-        }
-      }
-
-      if (gameState === "world" || gameState === "combat") {
-        // Player movement in world or combat
-        let newX = player.x;
-        let newY = player.y;
-        
-        if (keys["ArrowUp"] && player.y > worldBounds.y)
-          newY -= player.speed;
-        if (keys["ArrowDown"] && player.y + player.height < worldBounds.y + worldBounds.height)
-          newY += player.speed;
-        if (keys["ArrowLeft"] && player.x > worldBounds.x)
-          newX -= player.speed;
-        if (keys["ArrowRight"] && player.x + player.width < worldBounds.x + worldBounds.width)
-          newX += player.speed;
-        
-        // Update player position
-        player.x = newX;
-        player.y = newY;
-
-        // Update camera to follow player
-        camera.x = player.x - canvas.width / 2 + player.width / 2;
-        camera.y = player.y - canvas.height / 2 + player.height / 2;
-        camera.x = Math.max(worldBounds.x, Math.min(camera.x, worldBounds.width - canvas.width));
-        camera.y = Math.max(worldBounds.y, Math.min(camera.y, worldBounds.height - canvas.height));
-
-        // Spawn goons based on current country's density
-        goonTimer += deltaTime;
-        if (goonTimer > baseGoonInterval / countries[currentCountry].goonDensity) {
-          const size = Math.random() * 30 + 20;
-          goons.push({
-            x: worldBounds.x + worldBounds.width,
-            y: Math.random() * (worldBounds.height - size),
-            width: size,
-            height: size,
-            speed: 0.5 + Math.random(),
-            color: "black",
-          });
-          goonTimer = 0;
-        }
-        // Update goons (move left slowly and check for collision with player)
-        for (let i = goons.length - 1; i >= 0; i--) {
-          goons[i].x -= goons[i].speed;
-          if (goons[i].x + goons[i].width < worldBounds.x)
-            goons.splice(i, 1);
-          if (checkCollision(player, goons[i])) {
-            gameState = "combat";
-          }
-        }
-        // Advance to next country or boss fight when reaching right edge
-        if (player.x + player.width >= worldBounds.x + worldBounds.width) {
-          if (currentCountry < countries.length - 1) {
-            player.x = worldBounds.x + 10;
-            enterCountry(currentCountry + 1);
-          } else {
-            enterCastle(); // Enter the castle for boss fight
-          }
-        }
-        // Spawn coins randomly
-        coinTimer += deltaTime;
-        if (coinTimer > 3000) {
-          coins.push({
-            x: worldBounds.x + Math.random() * worldBounds.width,
-            y: worldBounds.y + Math.random() * worldBounds.height,
-            width: 20,
-            height: 20,
-            speed: 0,
-            color: "gold",
-          });
-          coinTimer = 0;
-        }
-        // Check coin collection
-        for (let i = coins.length - 1; i >= 0; i--) {
-          if (checkCollision(player, coins[i])) {
-            score += 1;
-            coins.splice(i, 1);
-          }
-        }
-      } else if (gameState === "bossFight") {
-        // Player movement in castle maze
-        let newX = player.x;
-        let newY = player.y;
-        
-        if (keys["ArrowUp"]) newY -= player.speed;
-        if (keys["ArrowDown"]) newY += player.speed;
-        if (keys["ArrowLeft"]) newX -= player.speed;
-        if (keys["ArrowRight"]) newX += player.speed;
-        
-        // Check wall collisions before updating position
-        if (!checkWallCollisions(newX, player.y)) {
-          player.x = newX;
-        }
-        
-        if (!checkWallCollisions(player.x, newY)) {
-          player.y = newY;
-        }
-        
-        // Update camera in bossFight
-        camera.x = player.x - canvas.width / 2 + player.width / 2;
-        camera.y = player.y - canvas.height / 2 + player.height / 2;
-        camera.x = Math.max(0, Math.min(camera.x, castleSize.width - canvas.width));
-        camera.y = Math.max(0, Math.min(camera.y, castleSize.height - canvas.height));
-        
-        // Boss AI
-        const distanceToPlayer = Math.sqrt(
-          Math.pow(boss.x - player.x, 2) + Math.pow(boss.y - player.y, 2)
-        );
-        
-        // Boss moves toward player if not too close
-        if (distanceToPlayer > 150) {
-          const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
-          let newBossX = boss.x + Math.cos(angle) * boss.speed;
-          let newBossY = boss.y + Math.sin(angle) * boss.speed;
-          
-          // Check if boss would collide with walls
-          const bossRect = {
-            x: newBossX,
-            y: boss.y,
-            width: boss.width,
-            height: boss.height
-          };
-          
-          if (!castleWalls.some(wall => checkCollision(bossRect, wall))) {
-            boss.x = newBossX;
-          }
-          
-          bossRect.x = boss.x;
-          bossRect.y = newBossY;
-          
-          if (!castleWalls.some(wall => checkCollision(bossRect, wall))) {
-            boss.y = newBossY;
-          }
-        }
-        
-        // Boss attacks
-        boss.attackCooldown -= deltaTime;
-        if (boss.attackCooldown <= 0 && distanceToPlayer < boss.attackRange) {
-          // Create a new projectile
-          const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
-          boss.attackProjectiles.push({
-            x: boss.x + boss.width / 2,
-            y: boss.y + boss.height / 2,
-            radius: 10,
-            speed: 3,
-            angle: angle,
-            color: "red"
-          });
-          
-          boss.attackCooldown = boss.attackRate;
-        }
-        
-        // Update boss projectiles
-        for (let i = boss.attackProjectiles.length - 1; i >= 0; i--) {
-          const proj = boss.attackProjectiles[i];
-          proj.x += Math.cos(proj.angle) * proj.speed;
-          proj.y += Math.sin(proj.angle) * proj.speed;
-          
-          // Check if projectile hits player
-          const distance = Math.sqrt(
-            Math.pow(proj.x - (player.x + player.width / 2), 2) + 
-            Math.pow(proj.y - (player.y + player.height / 2), 2)
-          );
-          
-          if (distance < proj.radius + player.width / 2) {
-            // Player takes damage if not invulnerable
-            if (!player.invulnerable) {
-              player.health -= boss.damage;
-              player.invulnerable = true;
-              player.invulnerableTimer = player.invulnerableDuration;
-              
-              // Game over if player health reaches 0
-              if (player.health <= 0) {
-                gameState = "over";
-              }
-            }
-            
-            // Remove projectile
-            boss.attackProjectiles.splice(i, 1);
-          }
-          
-          // Remove projectiles that hit walls
-          else if (castleWalls.some(wall => {
-            return (
-              proj.x > wall.x && 
-              proj.x < wall.x + wall.width && 
-              proj.y > wall.y && 
-              proj.y < wall.y + wall.height
-            );
-          })) {
-            boss.attackProjectiles.splice(i, 1);
-          }
-          
-          // Remove projectiles that go off-screen
-          else if (
-            proj.x < 0 || 
-            proj.x > castleSize.width || 
-            proj.y < 0 || 
-            proj.y > castleSize.height
-          ) {
-            boss.attackProjectiles.splice(i, 1);
-          }
-        }
-        
-        // Check collision with boss (direct damage if touching)
-        if (checkCollision(player, boss) && !player.invulnerable) {
-          player.health -= boss.damage * 2; // Double damage for direct contact
-          player.invulnerable = true;
-          player.invulnerableTimer = player.invulnerableDuration;
-          
-          // Game over if player health reaches 0
-          if (player.health <= 0) {
-            gameState = "over";
-          }
-        }
-      }
-
-      // Country name animation timer
-      if (countryNameDisplayTime > 0) countryNameDisplayTime -= deltaTime;
-    }
-
-    function draw() {
-      // Clear canvas before drawing
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // --- World Drawing with Camera ---
-      ctx.save();
-      ctx.translate(-camera.x, -camera.y);
-
-      if (gameState === "world" || gameState === "combat" || gameState === "talk") {
-        // Draw country-specific background
-        const bg = countries[currentCountry].background;
-        
-        // Sky gradient
-        const skyGradient = ctx.createLinearGradient(0, 0, 0, worldBounds.height - 100);
-        skyGradient.addColorStop(0, bg.sky);
-        skyGradient.addColorStop(1, "#FFFFFF");
-        ctx.fillStyle = skyGradient;
-        ctx.fillRect(worldBounds.x, worldBounds.y, worldBounds.width, worldBounds.height - 100);
-        
-        // Mountains in background
-        ctx.fillStyle = bg.mountains;
-        for (let i = 0; i < 5; i++) {
-          const mountainHeight = 100 + Math.sin(i * 0.7) * 50;
-          const mountainWidth = 300;
-          const x = i * 400;
-          ctx.beginPath();
-          ctx.moveTo(x, worldBounds.height - 100 - mountainHeight);
-          ctx.lineTo(x + mountainWidth / 2, worldBounds.height - 100);
-          ctx.lineTo(x + mountainWidth, worldBounds.height - 100 - mountainHeight);
-          ctx.closePath();
-          ctx.fill();
-        }
-        
-        // Ground
-        ctx.fillStyle = bg.ground;
-        ctx.fillRect(worldBounds.x, worldBounds.y + worldBounds.height - 100, worldBounds.width, 100);
-        
-        // Trees or environment objects
-        ctx.fillStyle = bg.trees;
-        for (let i = 0; i < 10; i++) {
-          const treeHeight = 60 + Math.random() * 40;
-          const treeWidth = 30;
-          const x = i * 200 + Math.random() * 100;
-          const y = worldBounds.height - 100 - treeHeight;
-          
-          // Tree trunk
-          ctx.fillStyle = "#8B4513";
-          ctx.fillRect(x + treeWidth / 3, y + treeHeight / 2, treeWidth / 3, treeHeight / 2);
-          
-          // Tree top
-          ctx.fillStyle = bg.trees;
-          ctx.beginPath();
-          ctx.moveTo(x, y + treeHeight / 2);
-          ctx.lineTo(x + treeWidth / 2, y);
-          ctx.lineTo(x + treeWidth, y + treeHeight / 2);
-          ctx.closePath();
-          ctx.fill();
-          
-          ctx.beginPath();
-          ctx.moveTo(x, y + treeHeight / 3);
-          ctx.lineTo(x + treeWidth / 2, y - treeHeight / 4);
-          ctx.lineTo(x + treeWidth, y + treeHeight / 3);
-          ctx.closePath();
-          ctx.fill();
-        }
-      } else if (gameState === "bossFight") {
-        // Draw castle background
-        // Stone floor
-        ctx.fillStyle = "#A9A9A9";
-        ctx.fillRect(0, 0, castleSize.width, castleSize.height);
-        
-        // Stone pattern
-        ctx.strokeStyle = "#696969";
-        ctx.lineWidth = 1;
-        for (let x = 0; x < castleSize.width; x += 40) {
-          for (let y = 0; y < castleSize.height; y += 40) {
-            ctx.strokeRect(x, y, 40, 40);
-          }
-        }
-        
-        // Draw castle walls
-        castleWalls.forEach(wall => {
-          // Wall base
-          ctx.fillStyle = wall.color;
-          ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
-          
-          // Wall detail (stone pattern)
-          ctx.fillStyle = "#696969";
-          const stoneSize = 10;
-          for (let x = wall.x; x < wall.x + wall.width; x += stoneSize) {
-            for (let y = wall.y; y < wall.y + wall.height; y += stoneSize) {
-              if (Math.random() > 0.7) {
-                ctx.fillRect(x, y, stoneSize, stoneSize);
-              }
-            }
-          }
-        });
-        
-        // Draw boss attack projectiles
-        boss.attackProjectiles.forEach(proj => {
-          ctx.fillStyle = proj.color;
-          ctx.beginPath();
-          ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
-          ctx.fill();
-        });
-      }
-
-      // Draw coins
-      coins.forEach((c) => {
-        ctx.fillStyle = c.color;
-        ctx.beginPath();
-        ctx.arc(c.x + c.width / 2, c.y + c.height / 2, c.width / 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#B8860B";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      });
-
-      // Draw goons
-      goons.forEach((g) => {
-        ctx.fillStyle = g.color;
-        ctx.fillRect(g.x, g.y, g.width, g.height);
-        ctx.save();
-        ctx.fillStyle = "white";
-        ctx.font = "12px monospace";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("goon", g.x + g.width / 2, g.y + g.height / 2);
-        ctx.restore();
-      });
-
-      // Draw NPC shacks
-      activeNPCs.forEach((npc) => {
-        // Shack base
-        ctx.fillStyle = npc.type === "shop" ? "#8B4513" : "#654321";
-        ctx.fillRect(npc.x, npc.y, npc.width, npc.height);
-        
-        // Shack roof
-        ctx.fillStyle = npc.type === "shop" ? "#A52A2A" : "#800000";
-        ctx.beginPath();
-        ctx.moveTo(npc.x - 5, npc.y);
-        ctx.lineTo(npc.x + npc.width / 2, npc.y - 15);
-        ctx.lineTo(npc.x + npc.width + 5, npc.y);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Door
-        ctx.fillStyle = "#4B3621";
-        ctx.fillRect(npc.x + npc.width / 2 - 5, npc.y + npc.height - 15, 10, 15);
-        
-        // Sign
-        ctx.save();
-        ctx.fillStyle = "#FAEBD7";
-        ctx.font = "10px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(npc.type, npc.x + npc.width / 2, npc.y - 25);
-        ctx.restore();
-      });
-
-      // Draw player
-      if (player.invulnerable && Math.floor(Date.now() / 100) % 2 === 0) {
-        // Flashing effect when invulnerable
-        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
-      } else {
-        ctx.fillStyle = player.color;
-      }
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-
-      // Draw boss (only in bossFight)
-      if (gameState === "bossFight") {
-        // Boss body
-        ctx.fillStyle = boss.color;
-        ctx.fillRect(boss.x, boss.y, boss.width, boss.height);
-        
-        // Boss crown
-        ctx.fillStyle = "gold";
-        ctx.beginPath();
-        ctx.moveTo(boss.x, boss.y);
-        ctx.lineTo(boss.x + boss.width / 2, boss.y - 20);
-        ctx.lineTo(boss.x + boss.width, boss.y);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Boss eyes
-        ctx.fillStyle = "white";
-        ctx.fillRect(boss.x + boss.width / 4, boss.y + boss.height / 4, 10, 10);
-        ctx.fillRect(boss.x + boss.width * 3/4 - 10, boss.y + boss.height / 4, 10, 10);
-        
-        ctx.fillStyle = "red";
-        ctx.fillRect(boss.x + boss.width / 4 + 2, boss.y + boss.height / 4 + 2, 6, 6);
-        ctx.fillRect(boss.x + boss.width * 3/4 - 8, boss.y + boss.height / 4 + 2, 6, 6);
-        
-        // Boss mouth
-        ctx.fillStyle = "black";
-        ctx.fillRect(boss.x + boss.width / 4, boss.y + boss.height * 2/3, boss.width / 2, 5);
-      }
-
-      ctx.restore();
-
-      // --- Overlay UI (ignores camera) ---
-      ctx.fillStyle = "black";
-      ctx.font = "20px sans-serif";
-      ctx.fillText(`Coins: ${score}`, 10, 25);
-      ctx.fillText(`Weapon: ${player.hasGun ? "Gun & Sword" : "Sword"}`, 10, 50);
-      // Display speedrun timer (in seconds)
-      ctx.fillText(`Time: ${(speedrunTime / 1000).toFixed(2)} sec`, 10, 75);
-      
-      // Player health bar
-      ctx.fillStyle = "black";
-      ctx.fillRect(10, 95, 200, 20);
-      
-      // Health bar color based on health percentage
-      const healthPercent = player.health / player.maxHealth;
-      if (healthPercent > 0.6) {
-        ctx.fillStyle = "green";
-      } else if (healthPercent > 0.3) {
-        ctx.fillStyle = "yellow";
-      } else {
-        ctx.fillStyle = "red";
-      }
-      
-      ctx.fillRect(12, 97, 196 * healthPercent, 16);
-      ctx.fillStyle = "white";
-      ctx.font = "14px sans-serif";
-      ctx.fillText(`Health: ${player.health}/${player.maxHealth}`, 15, 110);
-      
-      ctx.fillStyle = "black";
-      ctx.textAlign = "right";
-      if (gameState === "world" || gameState === "combat" || gameState === "talk") {
-        ctx.fillText(`Country: ${countries[currentCountry].name}`, canvas.width - 10, 25);
-      } else if (gameState === "bossFight") {
-        ctx.fillText(`Location: Castle Dungeon`, canvas.width - 10, 25);
-      }
-      ctx.textAlign = "left";
-
-      if (gameState === "bossFight") {
-        // Boss health bar at top of screen
-        ctx.fillStyle = "black";
-        ctx.fillRect(canvas.width / 2 - 100, 10, 200, 20);
-        
-        const bossHealthPercent = boss.hp / boss.maxHp;
-        ctx.fillStyle = bossHealthPercent > 0.5 ? "purple" : "red";
-        ctx.fillRect(canvas.width / 2 - 98, 12, 196 * bossHealthPercent, 16);
-        
-        ctx.fillStyle = "white";
-        ctx.font = "14px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(`Boss: ${boss.hp}/${boss.maxHp}`, canvas.width / 2, 25);
-        ctx.textAlign = "left";
-        
-        ctx.fillStyle = "black";
-        ctx.font = "16px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("Get close to the boss and press SPACE to attack!", canvas.width / 2, 50);
-        ctx.textAlign = "left";
-      }
-
-      // Country name animation
-      if (countryNameDisplayTime > 0) {
-        ctx.fillStyle = "rgba(0,0,0," + countryNameDisplayTime / COUNTRY_NAME_DISPLAY_DURATION + ")";
-        ctx.font = "40px serif";
-        ctx.textAlign = "center";
-        ctx.fillText(countries[currentCountry].name, canvas.width / 2, 150);
-        ctx.textAlign = "left";
-      }
-
-      // Title screen
-      if (gameState === "start") {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "white";
-        ctx.font = "30px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("GOONERBAIT 3D Adventure", canvas.width / 2, 250);
-        ctx.font = "20px sans-serif";
-        ctx.fillText("Press RIGHT ARROW to start your journey", canvas.width / 2, 300);
-        ctx.textAlign = "left";
-      }
-
-      // Win and Game Over screens
-      if (gameState === "win" || gameState === "over") {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "white";
-        ctx.font = "40px monospace";
-        ctx.textAlign = "center";
-        if (gameState === "win") {
-          ctx.fillText("YOU DEFEATED THE BOSS!", canvas.width / 2, 250);
-          ctx.font = "24px sans-serif";
-          ctx.fillText(`Your time: ${(finalTime / 1000).toFixed(2)} seconds`, canvas.width / 2, 300);
-          ctx.font = "18px sans-serif";
-          ctx.fillText("Click 'View Records' to see the leaderboard", canvas.width / 2, 340);
-        } else {
-          ctx.fillText("GAME OVER", canvas.width / 2, 250);
-          ctx.font = "24px sans-serif";
-          ctx.fillText("The boss defeated you!", canvas.width / 2, 300);
-        }
-        document.getElementById("restartBtn").style.display = "inline-block";
-        if (gameState === "win") {
-          document.getElementById("viewRecordsBtn").style.display = "inline-block";
-        } else {
-          document.getElementById("viewRecordsBtn").style.display = "none";
-        }
-        ctx.textAlign = "left";
-      } else {
-        document.getElementById("restartBtn").style.display = "none";
-        if (gameState !== "records") {
-          document.getElementById("viewRecordsBtn").style.display = "none";
-        }
-      }
-    }
-
-    let lastTime;
-    function gameLoop(timestamp) {
-      if (!lastTime) lastTime = timestamp;
-      const deltaTime = timestamp - lastTime;
-      lastTime = timestamp;
-      
-      if (gameState !== "records") {
-        update(deltaTime);
-        draw();
-      }
-      
-      requestAnimationFrame(gameLoop);
-    }
-
-    function restartGame() {
-      gameState = "start";
-      score = 0;
-      currentCountry = 0;
-      player.x = 100;
-      player.y = 300;
-      player.hasGun = false;
-      player.health = player.maxHealth;
-      player.invulnerable = false;
-      goons.length = 0;
-      coins.length = 0;
-      bullets.length = 0;
-      activeNPCs = [];
-      countryNameDisplayTime = 0;
-      boss.hp = boss.maxHp; // Reset boss health
-      boss.attackProjectiles = [];
-      speedrunTime = 0; // Reset speedrun timer
-      finalTime = 0;
-      document.getElementById("restartBtn").style.display = "none";
-      document.getElementById("viewRecordsBtn").style.display = "none";
-      recordBoard.style.display = "none";
-    }
-
-    // Record board functions
     function showRecordBoard() {
       gameState = "records";
       updateRecordList();
@@ -1195,67 +1071,1952 @@
         return;
       }
 
-      const newRecord = {
-        name: playerName,
-        time: finalTime,
-        date: new Date().toLocaleDateString()
-      };
-
-      speedrunRecords.push(newRecord);
-      
-      // Sort records by time (ascending)
-      speedrunRecords.sort((a, b) => a.time - b.time);
-      
-      // Keep only top 10 records
-      if (speedrunRecords.length > 10) {
-        speedrunRecords = speedrunRecords.slice(0, 10);
-      }
-      
-      // Save to localStorage
-      localStorage.setItem('speedrunRecords', JSON.stringify(speedrunRecords));
-      
-      // Update the displayed list
-      updateRecordList();
-      
-      // Clear the input
+      const records = saveSpeedrunRecord(playerName, finalTime);
+      updateRecordList(records);
       playerNameInput.value = "";
-      
-      alert("Record submitted successfully!");
+
+      showNotification("Record submitted successfully!");
     }
 
-    function updateRecordList() {
+    function updateRecordList(records = null) {
+      // Get records if not provided
+      if (!records) {
+        records = getSpeedrunRecords();
+      }
+
       // Clear the current list
       recordList.innerHTML = "";
-      
+
       // Add each record to the list
-      speedrunRecords.forEach((record, index) => {
+      records.forEach((record, index) => {
         const li = document.createElement("li");
-        
+
         const nameSpan = document.createElement("span");
         nameSpan.className = "record-name";
         nameSpan.textContent = `${index + 1}. ${record.name}`;
-        
+
         const timeSpan = document.createElement("span");
         timeSpan.className = "record-time";
-        timeSpan.textContent = `${(record.time / 1000).toFixed(2)}s`;
-        
+        timeSpan.textContent = formatTime(record.time);
+
         li.appendChild(nameSpan);
         li.appendChild(timeSpan);
         recordList.appendChild(li);
       });
-      
+
       // Show a message if no records
-      if (speedrunRecords.length === 0) {
+      if (records.length === 0) {
         const li = document.createElement("li");
         li.textContent = "No records yet. Be the first!";
         recordList.appendChild(li);
       }
     }
 
-    // Initialize the game
-    initCastleMaze();
-    requestAnimationFrame(gameLoop);
+    function showLoadingScreen(message = "Loading...") {
+      loadingScreen.querySelector("h2").textContent = message;
+      loadingScreen.style.display = "flex";
+      progressFill.style.width = "0%";
+
+      // Animate progress bar
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 1;
+        progressFill.style.width = `${progress}%`;
+
+        if (progress >= 100) {
+          clearInterval(interval);
+        }
+      }, 15);
+    }
+
+    function hideLoadingScreen() {
+      loadingScreen.style.display = "none";
+    }
+
+    function showNotification(message) {
+      // Create notification element if it doesn't exist
+      let notification = document.querySelector(".notification");
+      if (!notification) {
+        notification = document.createElement("div");
+        notification.className = "notification";
+        document.body.appendChild(notification);
+      }
+
+      // Set message and show notification
+      notification.textContent = message;
+      notification.classList.add("show");
+
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        notification.classList.remove("show");
+      }, 3000);
+    }
+
+    function renderGame() {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Handle different game states
+      switch (gameState) {
+        case "start":
+          renderStartScreen();
+          break;
+        case "world":
+        case "combat":
+        case "talk":
+        case "bossFight":
+          renderGameWorld();
+          break;
+        case "win":
+          renderWinScreen();
+          break;
+        case "over":
+          renderGameOverScreen();
+          break;
+      }
+    }
+
+    function renderStartScreen() {
+      // Background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, "#000033");
+      gradient.addColorStop(1, "#000066");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Stars
+      ctx.fillStyle = "white";
+      for (let i = 0; i < 200; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = Math.random() * 2 + 1;
+        ctx.fillRect(x, y, size, size);
+      }
+
+      // Title
+      ctx.fillStyle = "white";
+      ctx.font = "50px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("GOONERBAIT 3D Adventure", canvas.width / 2, canvas.height / 3);
+
+      // Subtitle
+      ctx.font = "30px sans-serif";
+      ctx.fillText("Press RIGHT ARROW to start your journey", canvas.width / 2, canvas.height / 2);
+
+      // Version
+      ctx.font = "16px sans-serif";
+      ctx.fillText("Enhanced Edition v2.0", canvas.width / 2, canvas.height / 2 + 40);
+
+      // Controls info
+      ctx.font = "18px sans-serif";
+      ctx.fillText("Controls: Arrow Keys to move, E to interact, S to shoot", canvas.width / 2, canvas.height - 100);
+      ctx.fillText("P to pause, SPACE to attack boss", canvas.width / 2, canvas.height - 70);
+
+      // Continue button visibility
+      continueBtn.style.display = loadGameProgress() && !loadGameProgress().completed ? "inline-block" : "none";
+    }
+
+    function renderGameWorld() {
+      // Save canvas state before applying camera transform
+      ctx.save();
+
+      // Apply camera transform
+      ctx.translate(-camera.x, -camera.y);
+
+      // Render level background
+      if (currentLevel && currentLevel.renderBackground) {
+        currentLevel.renderBackground(ctx);
+      }
+
+      // Render level-specific elements
+      if (currentLevel && currentLevel.render) {
+        currentLevel.render(ctx);
+      }
+
+      // Render game objects
+      renderCoins();
+      renderGoons();
+      renderNPCs();
+      renderBullets();
+      renderPlayer();
+
+      // Render boss if in boss fight
+      if (gameState === "bossFight" && currentLevel.renderBoss) {
+        currentLevel.renderBoss(ctx);
+      }
+
+      // Restore canvas state
+      ctx.restore();
+
+      // Render UI elements (not affected by camera)
+      renderUI();
+
+      // Render minimap if in boss fight
+      if (gameState === "bossFight" && currentLevel.renderMinimap) {
+        currentLevel.renderMinimap(ctx);
+      }
+
+      // Render pause overlay
+      if (isPaused) {
+        renderPauseOverlay();
+      }
+    }
+
+    function renderPauseOverlay() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "white";
+      ctx.font = "40px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+      ctx.font = "20px sans-serif";
+      ctx.fillText("Press P to resume", canvas.width / 2, canvas.height / 2 + 40);
+      ctx.textAlign = "left";
+    }
+
+    function renderCoins() {
+      coins.forEach((coin) => {
+        // Coin body
+        ctx.fillStyle = coin.color;
+        ctx.beginPath();
+        ctx.arc(coin.x + coin.width / 2, coin.y + coin.height / 2, coin.width / 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Coin border
+        ctx.strokeStyle = "#B8860B";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Coin shine
+        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.beginPath();
+        ctx.arc(coin.x + coin.width / 3, coin.y + coin.height / 3, coin.width / 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function renderGoons() {
+      goons.forEach((goon) => {
+        // Goon body
+        ctx.fillStyle = goon.color;
+        ctx.fillRect(goon.x, goon.y, goon.width, goon.height);
+
+        // Goon eyes
+        ctx.fillStyle = "red";
+        const eyeSize = goon.width / 5;
+        ctx.fillRect(goon.x + goon.width / 4 - eyeSize / 2, goon.y + goon.height / 3, eyeSize, eyeSize);
+        ctx.fillRect(goon.x + (goon.width * 3) / 4 - eyeSize / 2, goon.y + goon.height / 3, eyeSize, eyeSize);
+
+        // Goon mouth
+        ctx.fillStyle = "white";
+        ctx.fillRect(goon.x + goon.width / 4, goon.y + (goon.height * 2) / 3, goon.width / 2, goon.height / 10);
+
+        // Goon health bar
+        const healthPercent = goon.health / 3; // Assuming max health is 3
+        ctx.fillStyle = "black";
+        ctx.fillRect(goon.x, goon.y - 10, goon.width, 5);
+        ctx.fillStyle = healthPercent > 0.5 ? "green" : "red";
+        ctx.fillRect(goon.x, goon.y - 10, goon.width * healthPercent, 5);
+      });
+    }
+
+    function renderNPCs() {
+      activeNPCs.forEach((npc) => {
+        // Shack base
+        ctx.fillStyle = npc.type === "shop" ? "#8B4513" : "#654321";
+        ctx.fillRect(npc.x, npc.y, npc.width, npc.height);
+
+        // Shack roof
+        ctx.fillStyle = npc.type === "shop" ? "#A52A2A" : "#800000";
+        ctx.beginPath();
+        ctx.moveTo(npc.x - 5, npc.y);
+        ctx.lineTo(npc.x + npc.width / 2, npc.y - 15);
+        ctx.lineTo(npc.x + npc.width + 5, npc.y);
+        ctx.closePath();
+        ctx.fill();
+
+        // Door
+        ctx.fillStyle = "#4B3621";
+        ctx.fillRect(npc.x + npc.width / 2 - 5, npc.y + npc.height - 15, 10, 15);
+
+        // Sign
+        ctx.fillStyle = "#FAEBD7";
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(npc.type, npc.x + npc.width / 2, npc.y - 25);
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
+
+        // Interaction hint
+        if (checkCollision(player, npc)) {
+          ctx.fillStyle = "white";
+          ctx.font = "12px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("Press E to interact", npc.x + npc.width / 2, npc.y - 40);
+          ctx.textAlign = "left";
+        }
+      });
+    }
+
+    function renderBullets() {
+      bullets.forEach((bullet) => {
+        ctx.fillStyle = bullet.color;
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Bullet trail
+        ctx.fillStyle = "rgba(255, 165, 0, 0.5)";
+        ctx.beginPath();
+        ctx.arc(bullet.x - bullet.direction.x * 5, bullet.y - bullet.direction.y * 5, bullet.radius * 0.7, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function renderPlayer() {
+      // Don't render if invulnerable and should be flashing
+      if (player.invulnerable && Math.floor(Date.now() / 100) % 2 === 0) {
+        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+      } else {
+        ctx.fillStyle = player.color;
+      }
+
+      // Player body
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+
+      // Player eyes
+      ctx.fillStyle = "white";
+      const eyeSize = player.width / 5;
+      ctx.fillRect(player.x + player.width / 4, player.y + player.height / 3, eyeSize, eyeSize);
+      ctx.fillRect(player.x + (player.width * 3) / 4 - eyeSize, player.y + player.height / 3, eyeSize, eyeSize);
+
+      // Player weapon
+      if (player.hasGun) {
+        ctx.fillStyle = "black";
+        ctx.fillRect(player.x + player.width, player.y + player.height / 2 - 2, 10, 4);
+      } else {
+        ctx.fillStyle = "silver";
+        ctx.fillRect(player.x + player.width, player.y + player.height / 2 - 5, 15, 2);
+      }
+    }
+
+    function renderUI() {
+      // Background for UI
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fillRect(0, 0, canvas.width, 100);
+
+      // Player stats
+      ctx.fillStyle = "white";
+      ctx.font = "18px sans-serif";
+      ctx.fillText(`Coins: ${player.coins}`, 20, 30);
+      ctx.fillText(`Weapon: ${player.hasGun ? "Gun & Sword" : "Sword"}`, 20, 60);
+
+      // Speedrun timer
+      ctx.textAlign = "center";
+      ctx.fillText(`Time: ${formatTime(speedrunTime)}`, canvas.width / 2, 30);
+      ctx.textAlign = "left";
+
+      // Current level name
+      ctx.textAlign = "right";
+      ctx.fillText(`Level: ${currentLevel ? currentLevel.name : ""}`, canvas.width - 20, 30);
+      ctx.textAlign = "left";
+
+      // Player health bar
+      ctx.fillStyle = "black";
+      ctx.fillRect(20, 75, 200, 15);
+
+      // Health bar color based on health percentage
+      const healthPercent = player.health / player.maxHealth;
+      if (healthPercent > 0.6) {
+        ctx.fillStyle = "green";
+      } else if (healthPercent > 0.3) {
+        ctx.fillStyle = "yellow";
+      } else {
+        ctx.fillStyle = "red";
+      }
+
+      ctx.fillRect(22, 77, 196 * healthPercent, 11);
+      ctx.fillStyle = "white";
+      ctx.font = "12px sans-serif";
+      ctx.fillText(`Health: ${player.health}/${player.maxHealth}`, 25, 87);
+
+      // Boss health bar (if in boss fight)
+      if (gameState === "bossFight" && currentLevel.boss) {
+        ctx.fillStyle = "black";
+        ctx.fillRect(canvas.width / 2 - 100, 60, 200, 15);
+
+        const bossHealthPercent = currentLevel.boss.hp / currentLevel.boss.maxHp;
+        ctx.fillStyle = bossHealthPercent > 0.5 ? "purple" : "red";
+        ctx.fillRect(canvas.width / 2 - 98, 62, 196 * bossHealthPercent, 11);
+
+        ctx.fillStyle = "white";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(`Boss: ${currentLevel.boss.hp}/${currentLevel.boss.maxHp}`, canvas.width / 2, 72);
+        ctx.textAlign = "left";
+      }
+
+      // Country name animation
+      if (countryNameDisplayTime > 0 && currentLevel) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${countryNameDisplayTime / COUNTRY_NAME_DISPLAY_DURATION})`;
+        ctx.font = "40px serif";
+        ctx.textAlign = "center";
+        ctx.fillText(currentLevel.name, canvas.width / 2, 150);
+        ctx.textAlign = "left";
+      }
+    }
+
+    function renderWinScreen() {
+      // Background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, "#000066");
+      gradient.addColorStop(1, "#660066");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Victory text
+      ctx.fillStyle = "gold";
+      ctx.font = "60px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("VICTORY!", canvas.width / 2, canvas.height / 3);
+
+      // Completion time
+      ctx.fillStyle = "white";
+      ctx.font = "30px sans-serif";
+      ctx.fillText(`You completed the game in ${formatTime(finalTime)}`, canvas.width / 2, canvas.height / 2);
+
+      // Instructions
+      ctx.font = "20px sans-serif";
+      ctx.fillText("Click 'View Records' to see the leaderboard", canvas.width / 2, canvas.height / 2 + 50);
+
+      // Show buttons
+      document.getElementById("restartBtn").style.display = "inline-block";
+      document.getElementById("viewRecordsBtn").style.display = "inline-block";
+    }
+
+    function renderGameOverScreen() {
+      // Background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, "#660000");
+      gradient.addColorStop(1, "#330000");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Game over text
+      ctx.fillStyle = "white";
+      ctx.font = "60px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 3);
+
+      // Death message
+      ctx.font = "30px sans-serif";
+      ctx.fillText("You have been defeated!", canvas.width / 2, canvas.height / 2);
+
+      // Instructions
+      ctx.font = "20px sans-serif";
+      ctx.fillText("Click 'Restart' to try again", canvas.width / 2, canvas.height / 2 + 50);
+
+      // Show restart button
+      document.getElementById("restartBtn").style.display = "inline-block";
+    }
+
+    // ===== LEVEL DEFINITIONS =====
+
+    // Old Kingdom Level
+    levels[0] = {
+      name: "Old Kingdom",
+      width: 6400, // 4x larger than original
+      height: 4800, // 4x larger than original
+      goonDensity: 1,
+      background: {
+        sky: "#87CEEB", // Light blue sky
+        ground: "#7CFC00", // Green grass
+        mountains: "#8B4513", // Brown mountains
+        trees: "#228B22", // Forest green trees
+      },
+      npcs: [
+        {
+          x: 1200,
+          y: 1600,
+          type: "talk",
+          dialog:
+            "The ghost of the goon haunts these lands. Follow the river north. Be careful, the goons have become more aggressive lately!",
+        },
+        {
+          x: 2400,
+          y: 800,
+          type: "shop",
+          dialog: "Buy a gun for 5 coins? Press E to buy.",
+          cost: 5,
+        },
+        {
+          x: 4000,
+          y: 2200,
+          type: "talk",
+          dialog: "The castle lies beyond the desert. Many have tried to defeat the boss, but none have returned.",
+        },
+        {
+          x: 5500,
+          y: 3000,
+          type: "talk",
+          dialog:
+            "You're nearing the edge of the Old Kingdom. The Desert Realm awaits, with its scorching heat and dangerous creatures.",
+        },
+      ],
+
+      // Level-specific initialization
+      init: function() {
+        // Add any level-specific initialization here
+      },
+
+      // Render level background
+      renderBackground: function(ctx) {
+        const bg = this.background;
+
+        // Sky gradient
+        const skyGradient = ctx.createLinearGradient(0, 0, 0, this.height - 400);
+        skyGradient.addColorStop(0, bg.sky);
+        skyGradient.addColorStop(1, "#FFFFFF");
+        ctx.fillStyle = skyGradient;
+        ctx.fillRect(0, 0, this.width, this.height - 400);
+
+        // Draw river
+        ctx.fillStyle = "#4682B4"; // Steel blue water
+        ctx.beginPath();
+        ctx.moveTo(0, 1800);
+        // Winding river path
+        for (let x = 0; x < this.width; x += 400) {
+          const y = 1800 + Math.sin(x / 800) * 300;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(this.width, 1500);
+        ctx.lineTo(this.width, 1700);
+        // Return path
+        for (let x = this.width; x > 0; x -= 400) {
+          const y = 1800 + Math.sin(x / 800) * 300 + 200;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(0, 2000);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw river highlights
+        ctx.strokeStyle = "#87CEFA"; // Light sky blue
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let x = 0; x < this.width; x += 100) {
+          const y = 1800 + Math.sin(x / 800) * 300 + Math.sin(x / 100) * 20;
+          if (x === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+
+        // Mountains in background
+        ctx.fillStyle = bg.mountains;
+        for (let i = 0; i < 20; i++) {
+          const mountainHeight = 400 + Math.sin(i * 0.7) * 200;
+          const mountainWidth = 1200;
+          const x = i * 600;
+          ctx.beginPath();
+          ctx.moveTo(x, this.height - 400 - mountainHeight);
+          ctx.lineTo(x + mountainWidth / 2, this.height - 400);
+          ctx.lineTo(x + mountainWidth, this.height - 400 - mountainHeight);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Ground
+        ctx.fillStyle = bg.ground;
+        ctx.fillRect(0, this.height - 400, this.width, 400);
+
+        // Trees or environment objects
+        for (let i = 0; i < 100; i++) {
+          const treeHeight = 150 + Math.random() * 100;
+          const treeWidth = 80;
+          const x = i * 200 + Math.random() * 100;
+          const y = this.height - 400 - treeHeight;
+
+          // Tree trunk
+          ctx.fillStyle = "#8B4513";
+          ctx.fillRect(x + treeWidth / 3, y + treeHeight / 2, treeWidth / 3, treeHeight / 2);
+
+          // Tree top
+          ctx.fillStyle = bg.trees;
+          ctx.beginPath();
+          ctx.moveTo(x, y + treeHeight / 2);
+          ctx.lineTo(x + treeWidth / 2, y);
+          ctx.lineTo(x + treeWidth, y + treeHeight / 2);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(x, y + treeHeight / 3);
+          ctx.lineTo(x + treeWidth / 2, y - treeHeight / 4);
+          ctx.lineTo(x + treeWidth, y + treeHeight / 3);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Add some flowers and grass details
+        for (let i = 0; i < 500; i++) {
+          const x = Math.random() * this.width;
+          const y = this.height - 400 + Math.random() * 50;
+          const size = 5 + Math.random() * 10;
+
+          // Random flower colors
+          const colors = ["#FF69B4", "#FF1493", "#FFA500", "#FFFF00", "#9370DB"];
+          const color = colors[Math.floor(Math.random() * colors.length)];
+
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      },
+
+      // Render any additional level-specific elements
+      render: function(ctx) {
+        // Add any level-specific rendering here
+      },
+    };
+
+    // Desert Realm Level
+    levels[1] = {
+      name: "Desert Realm",
+      width: 6400, // 4x larger than original
+      height: 4800, // 4x larger than original
+      goonDensity: 2, // More goons than Old Kingdom
+      background: {
+        sky: "#FFD700", // Golden sky
+        ground: "#F4A460", // Sandy brown
+        mountains: "#D2B48C", // Tan mountains
+        trees: "#DAA520", // Golden rod (desert plants)
+      },
+      npcs: [
+        {
+          x: 800,
+          y: 1200,
+          type: "talk",
+          dialog:
+            "In the heat of the desert, the ghost roams. Seek the oasis to the east. The goons are stronger here, be careful!",
+        },
+        {
+          x: 3200,
+          y: 2400,
+          type: "shop",
+          dialog: "Upgrade your gun for 10 coins? Press E to buy.",
+          cost: 10,
+        },
+        {
+          x: 4800,
+          y: 1600,
+          type: "talk",
+          dialog: "The oasis is just ahead. It's the last source of water before the Frozen Tundra. Rest while you can.",
+        },
+      ],
+
+      // Level-specific initialization
+      init: function() {
+        // Create oasis
+        this.oasis = {
+          x: 3500,
+          y: 2000,
+          width: 800,
+          height: 600,
+          healingPower: 1, // Health restored per frame when player is in oasis
+        };
+      },
+
+      // Render level background
+      renderBackground: function(ctx) {
+        const bg = this.background;
+
+        // Sky gradient
+        const skyGradient = ctx.createLinearGradient(0, 0, 0, this.height - 400);
+        skyGradient.addColorStop(0, bg.sky);
+        skyGradient.addColorStop(0.7, "#FFA07A"); // Light salmon for desert horizon
+        ctx.fillStyle = skyGradient;
+        ctx.fillRect(0, 0, this.width, this.height - 400);
+
+        // Draw sun
+        ctx.fillStyle = "#FF4500"; // Orange-red sun
+        ctx.beginPath();
+        ctx.arc(this.width / 2, 500, 200, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sun rays
+        ctx.strokeStyle = "#FF8C00"; // Dark orange
+        ctx.lineWidth = 5;
+        for (let i = 0; i < 12; i++) {
+          const angle = (i / 12) * Math.PI * 2;
+          const x1 = this.width / 2 + Math.cos(angle) * 220;
+          const y1 = 500 + Math.sin(angle) * 220;
+          const x2 = this.width / 2 + Math.cos(angle) * 350;
+          const y2 = 500 + Math.sin(angle) * 350;
+
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+
+        // Desert dunes
+        for (let i = 0; i < 30; i++) {
+          const duneHeight = 100 + Math.sin(i * 0.5) * 50;
+          const duneWidth = 800;
+          const x = i * 400 - 200;
+
+          ctx.fillStyle = "#F4A460"; // Sandy brown
+          ctx.beginPath();
+          ctx.moveTo(x, this.height - 400);
+          ctx.quadraticCurveTo(x + duneWidth / 2, this.height - 400 - duneHeight, x + duneWidth, this.height - 400);
+          ctx.lineTo(x + duneWidth, this.height);
+          ctx.lineTo(x, this.height);
+          ctx.closePath();
+          ctx.fill();
+
+          // Dune highlights
+          ctx.fillStyle = "#DEB887"; // Burlywood (lighter sand)
+          ctx.beginPath();
+          ctx.moveTo(x, this.height - 400);
+          ctx.quadraticCurveTo(
+            x + duneWidth / 2,
+            this.height - 400 - duneHeight,
+            x + duneWidth / 2 + 100,
+            this.height - 400 - duneHeight / 2,
+          );
+          ctx.lineTo(x + duneWidth / 2 + 100, this.height - 400);
+          ctx.lineTo(x, this.height - 400);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Ground
+        ctx.fillStyle = bg.ground;
+        ctx.fillRect(0, this.height - 400, this.width, 400);
+
+        // Draw oasis
+        if (this.oasis) {
+          // Water
+          ctx.fillStyle = "#4169E1"; // Royal blue water
+          ctx.beginPath();
+          ctx.ellipse(
+            this.oasis.x + this.oasis.width / 2,
+            this.oasis.y + this.oasis.height / 2,
+            this.oasis.width / 2,
+            this.oasis.height / 2,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+
+          // Water ripples
+          ctx.strokeStyle = "#87CEFA"; // Light sky blue
+          ctx.lineWidth = 2;
+          for (let i = 1; i <= 3; i++) {
+            ctx.beginPath();
+            ctx.ellipse(
+              this.oasis.x + this.oasis.width / 2,
+              this.oasis.y + this.oasis.height / 2,
+              this.oasis.width / 2 - i * 20,
+              this.oasis.height / 2 - i * 15,
+              0,
+              0,
+              Math.PI * 2,
+            );
+            ctx.stroke();
+          }
+
+          // Palm trees around oasis
+          for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const x = this.oasis.x + this.oasis.width / 2 + Math.cos(angle) * (this.oasis.width / 2 + 50);
+            const y = this.oasis.y + this.oasis.height / 2 + Math.sin(angle) * (this.oasis.height / 2 + 50);
+
+            // Tree trunk
+            ctx.fillStyle = "#8B4513"; // Saddle brown
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.quadraticCurveTo(
+              x + Math.cos(angle + 0.2) * 30,
+              y + Math.sin(angle + 0.2) * 30 - 80,
+              x + Math.cos(angle) * 10,
+              x + Math.cos(angle + 0.2) * 30,
+              y + Math.sin(angle + 0.2) * 30 - 80,
+              x + Math.cos(angle) * 10,
+              y - 150,
+            );
+            ctx.lineTo(x + Math.cos(angle) * 15, y - 145);
+            ctx.quadraticCurveTo(x + Math.cos(angle - 0.2) * 30, y + Math.sin(angle - 0.2) * 30 - 80, x + 5, y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Palm leaves
+            ctx.fillStyle = "#228B22"; // Forest green
+            for (let j = 0; j < 5; j++) {
+              const leafAngle = angle + (j * Math.PI) / 3;
+              ctx.beginPath();
+              ctx.moveTo(x + Math.cos(angle) * 10, y - 150);
+              ctx.quadraticCurveTo(
+                x + Math.cos(angle) * 10 + Math.cos(leafAngle) * 40,
+                y - 150 + Math.sin(leafAngle) * 40,
+                x + Math.cos(angle) * 10 + Math.cos(leafAngle) * 80,
+                y - 150 + Math.sin(leafAngle) * 80,
+              );
+              ctx.quadraticCurveTo(
+                x + Math.cos(angle) * 10 + Math.cos(leafAngle) * 40 + Math.cos(leafAngle + 0.5) * 20,
+                y - 150 + Math.sin(leafAngle) * 40 + Math.sin(leafAngle + 0.5) * 20,
+                x + Math.cos(angle) * 10,
+                y - 150,
+              );
+              ctx.closePath();
+              ctx.fill();
+            }
+          }
+        }
+
+        // Cacti
+        for (let i = 0; i < 50; i++) {
+          const x = Math.random() * this.width;
+          const y = this.height - 400 + Math.random() * 50;
+          const height = 80 + Math.random() * 120;
+          const width = 20 + Math.random() * 15;
+
+          // Main cactus body
+          ctx.fillStyle = "#2E8B57"; // Sea green
+          ctx.fillRect(x, y - height, width, height);
+
+          // Cactus arms
+          if (Math.random() > 0.3) {
+            const armHeight = 30 + Math.random() * 50;
+            const armWidth = width * 0.8;
+            const armY = y - height + 20 + Math.random() * (height - 40);
+
+            // Left or right arm
+            const isLeftArm = Math.random() > 0.5;
+            const armX = isLeftArm ? x - armWidth : x + width;
+
+            ctx.fillRect(armX, armY, armWidth, armWidth / 2);
+            ctx.fillRect(
+              isLeftArm ? armX : armX + armWidth - armWidth / 2,
+              armY - armHeight + armWidth / 2,
+              armWidth / 2,
+              armHeight,
+            );
+          }
+        }
+      },
+
+      // Render any additional level-specific elements
+      render: function(ctx) {
+        // Check if player is in oasis and heal them
+        if (this.oasis && checkCollision(player, this.oasis)) {
+          if (player.health < player.maxHealth) {
+            player.health = Math.min(player.maxHealth, player.health + this.oasis.healingPower);
+
+            // Healing particles
+            for (let i = 0; i < 3; i++) {
+              const x = player.x + Math.random() * player.width;
+              const y = player.y + Math.random() * player.height;
+
+              ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
+              ctx.beginPath();
+              ctx.arc(x, y, 5, 0, Math.PI * 2);
+              ctx.fill();
+            }
+
+            // Healing text
+            ctx.fillStyle = "green";
+            ctx.font = "14px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("+1", player.x + player.width / 2, player.y - 10);
+            ctx.textAlign = "left";
+          }
+        }
+      },
+    };
+
+    // Frozen Tundra Level
+    levels[2] = {
+      name: "Frozen Tundra",
+      width: 6400, // 4x larger than original
+      height: 4800, // 4x larger than original
+      goonDensity: 3, // More goons than Desert Realm
+      background: {
+        sky: "#B0E0E6", // Powder blue sky
+        ground: "#F0FFFF", // Snow white
+        mountains: "#A9A9A9", // Dark gray mountains
+        trees: "#008080", // Teal (pine trees)
+      },
+      npcs: [
+        {
+          x: 1000,
+          y: 1400,
+          type: "talk",
+          dialog:
+            "The cold hides many secrets. The ghost is near the ice cave. Watch your step, the ice is slippery and goons are everywhere.",
+        },
+        {
+          x: 3000,
+          y: 2800,
+          type: "shop",
+          dialog: "Buy warm clothes for 15 coins? They will protect you from the cold. Press E to buy.",
+          cost: 15,
+        },
+        {
+          x: 5000,
+          y: 1800,
+          type: "talk",
+          dialog:
+            "The castle entrance is just ahead. No one has ever returned from there. Are you sure you want to proceed?",
+        },
+      ],
+
+      // Level-specific initialization
+      init: function() {
+        // Create ice cave
+        this.iceCave = {
+          x: 4000,
+          y: 1500,
+          width: 800,
+          height: 600,
+        };
+
+        // Create ice patches (slippery areas)
+        this.icePatches = [];
+        for (let i = 0; i < 20; i++) {
+          this.icePatches.push({
+            x: Math.random() * (this.width - 500),
+            y: Math.random() * (this.height - 500),
+            width: 300 + Math.random() * 500,
+            height: 200 + Math.random() * 300,
+          });
+        }
+      },
+
+      // Render level background
+      renderBackground: function(ctx) {
+        const bg = this.background;
+
+        // Sky gradient
+        const skyGradient = ctx.createLinearGradient(0, 0, 0, this.height - 400);
+        skyGradient.addColorStop(0, bg.sky);
+        skyGradient.addColorStop(1, "#E0FFFF"); // Light cyan
+        ctx.fillStyle = skyGradient;
+        ctx.fillRect(0, 0, this.width, this.height - 400);
+
+        // Northern lights
+        ctx.globalAlpha = 0.3;
+        for (let i = 0; i < 5; i++) {
+          const y = 200 + i * 100;
+          const colors = ["#00FF00", "#00FFFF", "#FF00FF", "#FFFF00"];
+          const color = colors[i % colors.length];
+
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 50;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+
+          for (let x = 0; x < this.width; x += 100) {
+            const waveHeight = Math.sin(x / 500 + i) * 100;
+            ctx.lineTo(x, y + waveHeight);
+          }
+
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1.0;
+
+        // Snow-covered mountains
+        ctx.fillStyle = "#FFFFFF";
+        for (let i = 0; i < 20; i++) {
+          const mountainHeight = 600 + Math.sin(i * 0.7) * 200;
+          const mountainWidth = 1200;
+          const x = i * 600;
+
+          // Mountain base
+          ctx.fillStyle = bg.mountains;
+          ctx.beginPath();
+          ctx.moveTo(x, this.height - 400 - mountainHeight * 0.8);
+          ctx.lineTo(x + mountainWidth / 2, this.height - 400);
+          ctx.lineTo(x + mountainWidth, this.height - 400 - mountainHeight * 0.8);
+          ctx.closePath();
+          ctx.fill();
+
+          // Snow cap
+          ctx.fillStyle = "#FFFFFF";
+          ctx.beginPath();
+          ctx.moveTo(x, this.height - 400 - mountainHeight * 0.8);
+          ctx.lineTo(x + mountainWidth / 2, this.height - 400 - mountainHeight);
+          ctx.lineTo(x + mountainWidth, this.height - 400 - mountainHeight * 0.8);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Ground (snow)
+        ctx.fillStyle = bg.ground;
+        ctx.fillRect(0, this.height - 400, this.width, 400);
+
+        // Draw ice patches
+        ctx.fillStyle = "rgba(135, 206, 250, 0.5)"; // Light sky blue with transparency
+        for (const patch of this.icePatches) {
+          ctx.beginPath();
+          ctx.ellipse(
+            patch.x + patch.width / 2,
+            patch.y + patch.height / 2,
+            patch.width / 2,
+            patch.height / 2,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+
+          // Ice reflections
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(
+            patch.x + patch.width / 2,
+            patch.y + patch.height / 2,
+            patch.width / 2 - 20,
+            patch.height / 2 - 15,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          ctx.stroke();
+        }
+
+        // Draw ice cave
+        if (this.iceCave) {
+          // Cave entrance
+          ctx.fillStyle = "#000033"; // Dark blue
+          ctx.beginPath();
+          ctx.ellipse(
+            this.iceCave.x + this.iceCave.width / 2,
+            this.iceCave.y + this.iceCave.height / 2,
+            this.iceCave.width / 2,
+            this.iceCave.height / 2,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+
+          // Ice formations around cave
+          ctx.fillStyle = "#ADD8E6"; // Light blue
+          for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2;
+            const x = this.iceCave.x + this.iceCave.width / 2 + (Math.cos(angle) * this.iceCave.width) / 2;
+            const y = this.iceCave.y + this.iceCave.height / 2 + (Math.sin(angle) * this.iceCave.height) / 2;
+            const height = 50 + Math.random() * 100;
+            const width = 20 + Math.random() * 30;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - width / 2, y + height);
+            ctx.lineTo(x + width / 2, y + height);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+
+        // Pine trees
+        for (let i = 0; i < 100; i++) {
+          const x = Math.random() * this.width;
+          const y = this.height - 400 + Math.random() * 50;
+          const height = 150 + Math.random() * 100;
+
+          // Tree trunk
+          ctx.fillStyle = "#8B4513"; // Saddle brown
+          ctx.fillRect(x - 10, y - height / 4, 20, height / 4);
+
+          // Tree branches (triangles stacked)
+          ctx.fillStyle = bg.trees;
+          for (let j = 0; j < 3; j++) {
+            const triangleHeight = height / 3;
+            const triangleWidth = 100 - j * 20;
+            const triangleY = y - height / 4 - j * triangleHeight;
+
+            ctx.beginPath();
+            ctx.moveTo(x, triangleY - triangleHeight);
+            ctx.lineTo(x - triangleWidth / 2, triangleY);
+            ctx.lineTo(x + triangleWidth / 2, triangleY);
+            ctx.closePath();
+            ctx.fill();
+          }
+
+          // Snow on branches
+          ctx.fillStyle = "#FFFFFF";
+          for (let j = 0; j < 3; j++) {
+            const triangleHeight = height / 3;
+            const triangleWidth = 100 - j * 20;
+            const triangleY = y - height / 4 - j * triangleHeight;
+
+            ctx.beginPath();
+            ctx.moveTo(x, triangleY - triangleHeight + 10);
+            ctx.lineTo(x - triangleWidth / 2 + 10, triangleY - 5);
+            ctx.lineTo(x + triangleWidth / 2 - 10, triangleY - 5);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+
+        // Falling snow
+        ctx.fillStyle = "#FFFFFF";
+        for (let i = 0; i < 500; i++) {
+          const x = Math.random() * this.width;
+          const y = Math.random() * this.height;
+          const size = 1 + Math.random() * 3;
+
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      },
+
+      // Render any additional level-specific elements
+      render: function(ctx) {
+        // Check if player is on ice and make them slide
+        for (const patch of this.icePatches) {
+          if (checkCollision(player, patch)) {
+            // Visual indicator that player is on ice
+            ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+            ctx.beginPath();
+            ctx.arc(player.x + player.width / 2, player.y + player.height + 10, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Apply sliding effect (continue movement in the same direction)
+            if (keys["ArrowUp"]) player.y -= 1;
+            if (keys["ArrowDown"]) player.y += 1;
+            if (keys["ArrowLeft"]) player.x -= 1;
+            if (keys["ArrowRight"]) player.x += 1;
+
+            break;
+          }
+        }
+      },
+    };
+
+    // Castle Level (Boss Fight)
+    levels[3] = {
+      name: "Castle Dungeon",
+      width: 12800, // Twice as large as other levels
+      height: 9600,
+      goonDensity: 2,
+      walls: [], // Will be populated in init
+
+      // Boss definition
+      boss: {
+        x: 11000,
+        y: 4800,
+        width: 100,
+        height: 100,
+        hp: 50,
+        maxHp: 50,
+        color: "purple",
+        speed: 2,
+        attackRange: 400,
+        attackCooldown: 0,
+        attackRate: 2000,
+        damage: 10,
+        attackProjectiles: [],
+        state: "idle", // idle, chasing, attacking
+        lastStateChange: 0,
+        stateDuration: 5000,
+      },
+
+      // Level-specific initialization
+      init: function() {
+        // Initialize castle walls
+        this.initCastleWalls();
+
+        // Create checkpoints
+        this.checkpoints = [
+          { x: 2000, y: 4800, reached: false },
+          { x: 5000, y: 2000, reached: false },
+          { x: 8000, y: 7000, reached: false },
+        ];
+
+        // Create health potions
+        this.healthPotions = [
+          { x: 3000, y: 3000, width: 30, height: 30, healing: 20 },
+          { x: 6000, y: 6000, width: 30, height: 30, healing: 20 },
+          { x: 9000, y: 4800, width: 30, height: 30, healing: 50 },
+        ];
+
+        // Reset boss
+        this.boss.hp = this.boss.maxHp;
+        this.boss.attackProjectiles = [];
+        this.boss.state = "idle";
+        this.boss.lastStateChange = 0;
+      },
+
+      initCastleWalls: function() {
+        this.walls = [];
+
+        // Outer walls
+        // Top wall
+        this.walls.push({
+          x: 0,
+          y: 0,
+          width: this.width,
+          height: 100,
+          color: "#8B4513",
+        });
+
+        // Bottom wall
+        this.walls.push({
+          x: 0,
+          y: this.height - 100,
+          width: this.width,
+          height: 100,
+          color: "#8B4513",
+        });
+
+        // Left wall
+        this.walls.push({
+          x: 0,
+          y: 0,
+          width: 100,
+          height: this.height,
+          color: "#8B4513",
+        });
+
+        // Right wall
+        this.walls.push({
+          x: this.width - 100,
+          y: 0,
+          width: 100,
+          height: this.height,
+          color: "#8B4513",
+        });
+
+        // Create a complex maze structure
+
+        // Main corridor
+        this.walls.push({
+          x: 500,
+          y: 0,
+          width: 100,
+          height: 4000,
+          color: "#8B4513",
+        });
+
+        this.walls.push({
+          x: 500,
+          y: 5600,
+          width: 100,
+          height: 4000,
+          color: "#8B4513",
+        });
+
+        // First section - horizontal walls
+        for (let i = 0; i < 5; i++) {
+          this.walls.push({
+            x: 600,
+            y: 1000 + i * 1500,
+            width: 2000,
+            height: 100,
+            color: "#8B4513",
+          });
+        }
+
+        // First section - vertical walls
+        for (let i = 0; i < 4; i++) {
+          this.walls.push({
+            x: 1000 + i * 500,
+            y: 1100,
+            width: 100,
+            height: 1400,
+            color: "#8B4513",
+          });
+        }
+
+        // Second section - entrance
+        this.walls.push({
+          x: 2600,
+          y: 0,
+          width: 100,
+          height: 3000,
+          color: "#8B4513",
+        });
+
+        this.walls.push({
+          x: 2600,
+          y: 4000,
+          width: 100,
+          height: 5600,
+          color: "#8B4513",
+        });
+
+        // Second section - maze
+        for (let i = 0; i < 8; i++) {
+          // Horizontal walls
+          this.walls.push({
+            x: 2700,
+            y: 1000 + i * 1000,
+            width: 3000,
+            height: 100,
+            color: "#8B4513",
+          });
+
+          // Vertical walls
+          if (i < 7) {
+            this.walls.push({
+              x: 3200 + i * 400,
+              y: 1100 + i * 1000,
+              width: 100,
+              height: 900,
+              color: "#8B4513",
+            });
+          }
+        }
+
+        // Create openings in the walls
+        for (let i = 0; i < 7; i++) {
+          const wall = this.walls[this.walls.length - 7 + i];
+          const opening = Math.floor(Math.random() * 3);
+
+          if (opening === 0) {
+            // Opening on left
+            wall.width -= 200;
+            wall.x += 200;
+          } else if (opening === 1) {
+            // Opening in middle
+            const originalWidth = wall.width;
+            wall.width = originalWidth / 2 - 100;
+
+            this.walls.push({
+              x: wall.x + wall.width + 200,
+              y: wall.y,
+              width: originalWidth / 2 - 100,
+              height: wall.height,
+              color: wall.color,
+            });
+          } else {
+            // Opening on right
+            wall.width -= 200;
+          }
+        }
+
+        // Third section - boss area entrance
+        this.walls.push({
+          x: 5700,
+          y: 0,
+          width: 100,
+          height: 4000,
+          color: "#8B4513",
+        });
+
+        this.walls.push({
+          x: 5700,
+          y: 5600,
+          width: 100,
+          height: 4000,
+          color: "#8B4513",
+        });
+
+        // Third section - circular chambers
+        for (let i = 0; i < 3; i++) {
+          const centerX = 7000 + i * 1500;
+          const centerY = 4800;
+          const radius = 1000;
+          const segments = 16;
+          const wallThickness = 100;
+
+          // Create circular wall
+          for (let j = 0; j < segments; j++) {
+            const angle1 = (j / segments) * Math.PI * 2;
+            const angle2 = ((j + 1) / segments) * Math.PI * 2;
+
+            const x1 = centerX + Math.cos(angle1) * radius;
+            const y1 = centerY + Math.sin(angle1) * radius;
+            const x2 = centerX + Math.cos(angle2) * radius;
+            const y2 = centerY + Math.sin(angle2) * radius;
+
+            // Skip one segment to create an entrance
+            if (j !== 0) {
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const length = Math.sqrt(dx * dx + dy * dy);
+              const normalX = dy / length;
+              const normalY = -dx / length;
+
+              this.walls.push({
+                x: x1,
+                y: y1,
+                width: length,
+                height: wallThickness,
+                angle: Math.atan2(dy, dx),
+                color: "#8B4513",
+                isRotated: true,
+              });
+            }
+          }
+
+          // Add some internal walls
+          for (let j = 0; j < 3; j++) {
+            const angle = Math.random() * Math.PI * 2;
+            const length = radius * 0.8;
+
+            this.walls.push({
+              x: centerX,
+              y: centerY,
+              width: length,
+              height: wallThickness,
+              angle: angle,
+              color: "#8B4513",
+              isRotated: true,
+            });
+          }
+        }
+
+        // Final boss chamber
+        const bossX = 10500;
+        const bossY = 4800;
+        const bossRadius = 1200;
+
+        // Create circular boss chamber
+        for (let j = 0; j < 32; j++) {
+          const angle1 = (j / 32) * Math.PI * 2;
+          const angle2 = ((j + 1) / 32) * Math.PI * 2;
+
+          const x1 = bossX + Math.cos(angle1) * bossRadius;
+          const y1 = bossY + Math.sin(angle1) * bossRadius;
+          const x2 = bossX + Math.cos(angle2) * bossRadius;
+          const y2 = bossY + Math.sin(angle2) * bossRadius;
+
+          // Skip one segment to create an entrance
+          if (j !== 24) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const normalX = dy / length;
+            const normalY = -dx / length;
+
+            this.walls.push({
+              x: x1,
+              y: y1,
+              width: length,
+              height: 100,
+              angle: Math.atan2(dy, dx),
+              color: "#8B4513",
+              isRotated: true,
+            });
+          }
+        }
+
+        // Add pillars in boss room
+        for (let i = 0; i < 6; i++) {
+          const angle = (i / 6) * Math.PI * 2;
+          const x = bossX + Math.cos(angle) * (bossRadius * 0.6);
+          const y = bossY + Math.sin(angle) * (bossRadius * 0.6);
+
+          this.walls.push({
+            x: x - 75,
+            y: y - 75,
+            width: 150,
+            height: 150,
+            color: "#8B4513",
+          });
+        }
+      },
+
+      // Update boss behavior
+      updateBoss: function(deltaTime) {
+        if (!this.boss) return;
+
+        // Update boss state
+        this.boss.lastStateChange += deltaTime;
+        if (this.boss.lastStateChange > this.boss.stateDuration) {
+          // Change state
+          if (this.boss.state === "idle") {
+            this.boss.state = Math.random() > 0.5 ? "chasing" : "attacking";
+          } else {
+            this.boss.state = "idle";
+          }
+          this.boss.lastStateChange = 0;
+        }
+
+        // Calculate distance to player
+        const dx = player.x - this.boss.x;
+        const dy = player.y - this.boss.y;
+        const distanceToPlayer = Math.sqrt(dx * dx + dy * dy);
+
+        // Boss behavior based on state
+        switch (this.boss.state) {
+          case "idle":
+            // Just stay in place
+            break;
+
+          case "chasing":
+            // Move toward player if not too close
+            if (distanceToPlayer > 150) {
+              const angle = Math.atan2(dy, dx);
+              const newBossX = this.boss.x + Math.cos(angle) * this.boss.speed;
+              const newBossY = this.boss.y + Math.sin(angle) * this.boss.speed;
+
+              // Check if boss would collide with walls
+              const bossRect = {
+                x: newBossX,
+                y: this.boss.y,
+                width: this.boss.width,
+                height: this.boss.height,
+              };
+
+              if (!this.walls.some((wall) => checkCollision(bossRect, wall))) {
+                this.boss.x = newBossX;
+              }
+
+              bossRect.x = this.boss.x;
+              bossRect.y = newBossY;
+
+              if (!this.walls.some((wall) => checkCollision(bossRect, wall))) {
+                this.boss.y = newBossY;
+              }
+            }
+            break;
+
+          case "attacking":
+            // Attack with projectiles
+            this.boss.attackCooldown -= deltaTime;
+            if (this.boss.attackCooldown <= 0 && distanceToPlayer < this.boss.attackRange) {
+              // Create multiple projectiles in a spread pattern
+              const baseAngle = Math.atan2(dy, dx);
+              const spreadCount = 5;
+
+              for (let i = 0; i < spreadCount; i++) {
+                const spreadAngle = baseAngle - 0.4 + (i / (spreadCount - 1)) * 0.8;
+
+                this.boss.attackProjectiles.push({
+                  x: this.boss.x + this.boss.width / 2,
+                  y: this.boss.y + this.boss.height / 2,
+                  radius: 15,
+                  speed: 4,
+                  angle: spreadAngle,
+                  color: "red",
+                });
+              }
+
+              this.boss.attackCooldown = this.boss.attackRate;
+            }
+            break;
+        }
+
+        // Update boss projectiles
+        for (let i = this.boss.attackProjectiles.length - 1; i >= 0; i--) {
+          const proj = this.boss.attackProjectiles[i];
+          proj.x += Math.cos(proj.angle) * proj.speed;
+          proj.y += Math.sin(proj.angle) * proj.speed;
+
+          // Check if projectile hits player
+          const distance = Math.sqrt(
+            Math.pow(proj.x - (player.x + player.width / 2), 2) + Math.pow(proj.y - (player.y + player.height / 2), 2),
+          );
+
+          if (distance < proj.radius + player.width / 2) {
+            // Player takes damage if not invulnerable
+            if (!player.invulnerable) {
+              player.health -= this.boss.damage;
+              player.invulnerable = true;
+              player.invulnerableTimer = player.invulnerableDuration;
+
+              // Game over if player health reaches 0
+              if (player.health <= 0) {
+                gameState = "over";
+                document.getElementById("restartBtn").style.display = "inline-block";
+              }
+            }
+
+            // Remove projectile
+            this.boss.attackProjectiles.splice(i, 1);
+          }
+
+          // Remove projectiles that hit walls
+          else if (
+            this.walls.some((wall) => {
+              if (wall.isRotated) {
+                // Complex collision for rotated walls
+                // Simplified approach: check if point is close to line segment
+                return false; // Implement proper rotated collision if needed
+              } else {
+                return proj.x > wall.x && proj.x < wall.x + wall.width && proj.y > wall.y && proj.y < wall.y + wall.height;
+              }
+            })
+          ) {
+            this.boss.attackProjectiles.splice(i, 1);
+          }
+
+          // Remove projectiles that go off-screen
+          else if (proj.x < 0 || proj.x > this.width || proj.y < 0 || proj.y > this.height) {
+            this.boss.attackProjectiles.splice(i, 1);
+          }
+        }
+
+        // Check collision with boss (direct damage if touching)
+        if (checkCollision(player, this.boss) && !player.invulnerable) {
+          player.health -= this.boss.damage * 2; // Double damage for direct contact
+          player.invulnerable = true;
+          player.invulnerableTimer = player.invulnerableDuration;
+
+          // Game over if player health reaches 0
+          if (player.health <= 0) {
+            gameState = "over";
+            document.getElementById("restartBtn").style.display = "inline-block";
+          }
+        }
+
+        // Check health potions
+        for (let i = this.healthPotions.length - 1; i >= 0; i--) {
+          if (checkCollision(player, this.healthPotions[i])) {
+            player.health = Math.min(player.maxHealth, player.health + this.healthPotions[i].healing);
+            this.healthPotions.splice(i, 1);
+            showNotification(`+${this.healthPotions[i].healing} Health`);
+          }
+        }
+
+        // Check checkpoints
+        for (let i = 0; i < this.checkpoints.length; i++) {
+          const checkpoint = this.checkpoints[i];
+          if (!checkpoint.reached) {
+            const checkpointRect = {
+              x: checkpoint.x - 50,
+              y: checkpoint.y - 50,
+              width: 100,
+              height: 100,
+            };
+
+            if (checkCollision(player, checkpointRect)) {
+              checkpoint.reached = true;
+              showNotification("Checkpoint reached!");
+              saveGameProgress();
+            }
+          }
+        }
+      },
+
+      // Render level background
+      renderBackground: function(ctx) {
+        // Castle floor
+        ctx.fillStyle = "#A9A9A9"; // Dark gray
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        // Floor pattern
+        ctx.strokeStyle = "#696969"; // Dim gray
+        ctx.lineWidth = 1;
+
+        // Only draw floor pattern for visible area (optimization)
+        const startX = Math.floor(camera.x / 100) * 100;
+        const startY = Math.floor(camera.y / 100) * 100;
+        const endX = Math.ceil((camera.x + camera.width) / 100) * 100;
+        const endY = Math.ceil((camera.y + camera.height) / 100) * 100;
+
+        for (let x = startX; x < endX; x += 100) {
+          for (let y = startY; y < endY; y += 100) {
+            ctx.strokeRect(x, y, 100, 100);
+          }
+        }
+
+        // Add some blood stains and debris
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+
+        // Use a fixed seed for consistent random patterns
+        const pseudoRandom = (x, y) => {
+          return (Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1;
+        };
+
+        for (let x = startX; x < endX; x += 200) {
+          for (let y = startY; y < endY; y += 200) {
+            if (pseudoRandom(x, y) > 0.7) {
+              // Blood stain
+              ctx.fillStyle = "#8B0000"; // Dark red
+              ctx.beginPath();
+              ctx.ellipse(
+                x + pseudoRandom(x, y + 1) * 100,
+                y + pseudoRandom(x + 1, y) * 100,
+                20 + pseudoRandom(x, y + 2) * 30,
+                10 + pseudoRandom(x + 2, y) * 20,
+                0,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
+            } else if (pseudoRandom(x, y) < 0.2) {
+              // Debris/rocks
+              ctx.fillStyle = "#696969"; // Dim gray
+              ctx.beginPath();
+              ctx.rect(
+                x + pseudoRandom(x, y + 3) * 100,
+                y + pseudoRandom(x + 3, y) * 100,
+                10 + pseudoRandom(x, y + 4) * 15,
+                10 + pseudoRandom(x + 4, y) * 15,
+              );
+              ctx.fill();
+            }
+          }
+        }
+
+        ctx.restore();
+      },
+
+      // Render any additional level-specific elements
+      render: function(ctx) {
+        // Draw walls
+        for (const wall of this.walls) {
+          if (wall.isRotated) {
+            // Draw rotated wall
+            ctx.save();
+            ctx.translate(wall.x, wall.y);
+            ctx.rotate(wall.angle);
+
+            // Wall base
+            ctx.fillStyle = wall.color;
+            ctx.fillRect(0, -wall.height / 2, wall.width, wall.height);
+
+            // Wall detail (stone pattern)
+            ctx.fillStyle = "#696969"; // Dim gray
+            const stoneSize = 10;
+            for (let x = 0; x < wall.width; x += stoneSize) {
+              for (let y = -wall.height / 2; y < wall.height / 2; y += stoneSize) {
+                if (Math.random() > 0.7) {
+                  ctx.fillRect(x, y, stoneSize, stoneSize);
+                }
+              }
+            }
+
+            ctx.restore();
+          } else {
+            // Draw normal wall
+            ctx.fillStyle = wall.color;
+            ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+
+            // Wall detail (stone pattern)
+            ctx.fillStyle = "#696969"; // Dim gray
+            const stoneSize = 10;
+            for (let x = wall.x; x < wall.x + wall.width; x += stoneSize) {
+              for (let y = wall.y; y < wall.y + wall.height; y += stoneSize) {
+                if (Math.random() > 0.7) {
+                  ctx.fillRect(x, y, stoneSize, stoneSize);
+                }
+              }
+            }
+          }
+        }
+
+        // Draw checkpoints
+        for (const checkpoint of this.checkpoints) {
+          ctx.fillStyle = checkpoint.reached ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 255, 0, 0.5)";
+          ctx.beginPath();
+          ctx.arc(checkpoint.x, checkpoint.y, 50, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Checkpoint symbol
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(checkpoint.x - 20, checkpoint.y);
+          ctx.lineTo(checkpoint.x - 10, checkpoint.y + 20);
+          ctx.lineTo(checkpoint.x + 20, checkpoint.y - 15);
+          ctx.stroke();
+        }
+
+        // Draw health potions
+        for (const potion of this.healthPotions) {
+          // Potion bottle
+          ctx.fillStyle = "#FF0000"; // Red
+          ctx.beginPath();
+          ctx.ellipse(
+            potion.x + potion.width / 2,
+            potion.y + potion.height / 2,
+            potion.width / 2,
+            potion.height / 2,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+
+          // Bottle highlight
+          ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+          ctx.beginPath();
+          ctx.ellipse(
+            potion.x + potion.width / 3,
+            potion.y + potion.height / 3,
+            potion.width / 6,
+            potion.height / 6,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+
+          // Health cross symbol
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(potion.x + potion.width / 2, potion.y + potion.height / 4);
+          ctx.lineTo(potion.x + potion.width / 2, potion.y + (potion.height * 3) / 4);
+          ctx.moveTo(potion.x + potion.width / 4, potion.y + potion.height / 2);
+          ctx.lineTo(potion.x + (potion.width * 3) / 4, potion.y + potion.height / 2);
+          ctx.stroke();
+        }
+      },
+
+      // Render boss
+      renderBoss: function(ctx) {
+        if (!this.boss) return;
+
+        // Boss body
+        ctx.fillStyle = this.boss.color;
+        ctx.fillRect(this.boss.x, this.boss.y, this.boss.width, this.boss.height);
+
+        // Boss crown
+        ctx.fillStyle = "gold";
+        ctx.beginPath();
+        ctx.moveTo(this.boss.x, this.boss.y);
+        ctx.lineTo(this.boss.x + this.boss.width / 2, this.boss.y - 30);
+        ctx.lineTo(this.boss.x + this.boss.width, this.boss.y);
+        ctx.closePath();
+        ctx.fill();
+
+        // Boss eyes
+        ctx.fillStyle = "white";
+        ctx.fillRect(this.boss.x + this.boss.width / 4, this.boss.y + this.boss.height / 4, 15, 15);
+        ctx.fillRect(this.boss.x + (this.boss.width * 3) / 4 - 15, this.boss.y + this.boss.height / 4, 15, 15);
+
+        ctx.fillStyle = "red";
+        ctx.fillRect(this.boss.x + this.boss.width / 4 + 3, this.boss.y + this.boss.height / 4 + 3, 9, 9);
+        ctx.fillRect(this.boss.x + (this.boss.width * 3) / 4 - 12, this.boss.y + this.boss.height / 4 + 3, 9, 9);
+
+        // Boss mouth
+        ctx.fillStyle = "black";
+        ctx.fillRect(this.boss.x + this.boss.width / 4, this.boss.y + (this.boss.height * 2) / 3, this.boss.width / 2, 8);
+
+        // Boss state indicator
+        let stateColor;
+        switch (this.boss.state) {
+          case "idle":
+            stateColor = "blue";
+            break;
+          case "chasing":
+            stateColor = "green";
+            break;
+          case "attacking":
+            stateColor = "red";
+            break;
+        }
+
+        ctx.fillStyle = stateColor;
+        ctx.beginPath();
+        ctx.arc(this.boss.x + this.boss.width / 2, this.boss.y - 40, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw boss projectiles
+        for (const proj of this.boss.attackProjectiles) {
+          // Projectile body
+          ctx.fillStyle = proj.color;
+          ctx.beginPath();
+          ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Projectile trail
+          ctx.fillStyle = "rgba(255, 165, 0, 0.5)"; // Orange with transparency
+          ctx.beginPath();
+          ctx.arc(proj.x - Math.cos(proj.angle) * 10, proj.y - Math.sin(proj.angle) * 10, proj.radius * 0.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(proj.x - Math.cos(proj.angle) * 20, proj.y - Math.sin(proj.angle) * 20, proj.radius * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(proj.x - Math.cos(proj.angle) * 30, proj.y - Math.sin(proj.angle) * 30, proj.radius * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      },
+
+      // Render minimap
+      renderMinimap: function(ctx) {
+        // Create minimap container
+        const minimapSize = 200;
+        const minimapX = canvas.width - minimapSize - 20;
+        const minimapY = canvas.height - minimapSize - 20;
+
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(minimapX, minimapY, minimapSize, minimapSize);
+        ctx.strokeStyle = "white";
+        ctx.strokeRect(minimapX, minimapY, minimapSize, minimapSize);
+
+        // Calculate scale factors
+        const scaleX = minimapSize / this.width;
+        const scaleY = minimapSize / this.height;
+
+        // Draw walls on minimap
+        ctx.fillStyle = "rgba(139, 69, 19, 0.7)"; // Brown with transparency
+        for (const wall of this.walls) {
+          if (wall.isRotated) {
+            // Skip rotated walls for simplicity
+            continue;
+          }
+
+          ctx.fillRect(minimapX + wall.x * scaleX, minimapY + wall.y * scaleY, wall.width * scaleX, wall.height * scaleY);
+        }
+
+        // Draw checkpoints on minimap
+        for (const checkpoint of this.checkpoints) {
+          ctx.fillStyle = checkpoint.reached ? "rgba(0, 255, 0, 0.7)" : "rgba(255, 255, 0, 0.7)";
+          ctx.beginPath();
+          ctx.arc(minimapX + checkpoint.x * scaleX, minimapY + checkpoint.y * scaleY, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Draw boss on minimap
+        if (this.boss) {
+          ctx.fillStyle = "rgba(255, 0, 0, 0.7)"; // Red with transparency
+          ctx.fillRect(minimapX + this.boss.x * scaleX, minimapY + this.boss.y * scaleY, 5, 5);
+        }
+
+        // Draw player on minimap
+        ctx.fillStyle = "rgba(0, 0, 255, 0.7)"; // Blue with transparency
+        ctx.fillRect(minimapX + player.x * scaleX, minimapY + player.y * scaleY, 3, 3);
+
+        // Draw camera viewport on minimap
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.strokeRect(
+          minimapX + camera.x * scaleX,
+          minimapY + camera.y * scaleY,
+          camera.width * scaleX,
+          camera.height * scaleY,
+        );
+      },
+    };
+
+    // Initialize game
+    window.addEventListener("load", () => {
+      // Initialize game
+      initGame();
+    });
+
+    function initGame() {
+      // Check for saved game
+      const savedGame = loadGameProgress();
+      if (savedGame && !savedGame.completed) {
+        document.getElementById("continueBtn").style.display = "inline-block";
+      }
+
+      // Start game loop
+      requestAnimationFrame(gameLoop);
+    }
   </script>
 </body>
 
 </html>
+
