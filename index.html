@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -37,6 +36,7 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      transition: background-color 0.2s;
     }
 
     .game-button:hover {
@@ -74,13 +74,14 @@
       transform: translateX(-50%);
       width: 400px;
       padding: 20px;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.8);
       color: #fff;
       font-family: sans-serif;
       display: none;
       border-radius: 10px;
       border: 2px solid #fff;
       z-index: 100;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
     }
 
     #recordBoard {
@@ -96,6 +97,7 @@
       display: none;
       z-index: 100;
       border: 2px solid gold;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
     }
 
     #recordBoard h2 {
@@ -152,6 +154,7 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      transition: background-color 0.2s;
     }
 
     #submitForm button:hover {
@@ -166,6 +169,7 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      transition: background-color 0.2s;
     }
 
     #closeRecordBtn:hover {
@@ -178,7 +182,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.9);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -190,6 +194,7 @@
     #loadingScreen h2 {
       color: white;
       margin-bottom: 20px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
     .progress-bar {
@@ -198,6 +203,7 @@
       background: #333;
       border-radius: 10px;
       overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
 
     .progress-fill {
@@ -212,7 +218,7 @@
       top: 100px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.8);
       color: white;
       padding: 10px 20px;
       border-radius: 5px;
@@ -220,6 +226,7 @@
       opacity: 0;
       transition: opacity 0.5s;
       z-index: 200;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
     .notification.show {
@@ -232,10 +239,158 @@
       right: 20px;
       width: 200px;
       height: 200px;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.7);
       border: 2px solid white;
       border-radius: 5px;
       z-index: 50;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Developer mode panel */
+    #devPanel {
+      position: absolute;
+      top: 100px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #00ff00;
+      padding: 15px;
+      border-radius: 5px;
+      border: 2px solid #00ff00;
+      font-family: monospace;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+    }
+
+    #devPanel h3 {
+      margin-top: 0;
+      color: #00ff00;
+      border-bottom: 1px solid #00ff00;
+      padding-bottom: 5px;
+    }
+
+    .dev-button {
+      background: #333;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      padding: 5px 10px;
+      margin: 5px;
+      cursor: pointer;
+      font-family: monospace;
+      transition: background-color 0.2s;
+    }
+
+    .dev-button:hover {
+      background: #444;
+    }
+
+    #devCodeInput {
+      background: #222;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      padding: 5px;
+      width: 100px;
+      font-family: monospace;
+      margin-right: 5px;
+    }
+
+    /* Visual effects */
+    .particle {
+      position: absolute;
+      background-color: white;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Settings panel */
+    #settingsPanel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      border-radius: 10px;
+      display: none;
+      z-index: 100;
+      border: 2px solid #4caf50;
+      box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+    }
+
+    #settingsPanel h2 {
+      margin-top: 0;
+      color: #4caf50;
+      border-bottom: 1px solid #4caf50;
+      padding-bottom: 10px;
+    }
+
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+    }
+
+    .settings-row label {
+      flex: 1;
+    }
+
+    .settings-row input[type="range"] {
+      flex: 1;
+    }
+
+    .settings-row select {
+      flex: 1;
+      padding: 5px;
+      background: #333;
+      color: white;
+      border: 1px solid #4caf50;
+    }
+
+    #closeSettingsBtn {
+      margin-top: 15px;
+      padding: 8px 15px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    #closeSettingsBtn:hover {
+      background: #45a049;
+    }
+
+    /* FPS counter */
+    #fpsCounter {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 14px;
+      display: none;
+    }
+
+    /* Performance indicator */
+    #performanceIndicator {
+      position: absolute;
+      top: 40px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 14px;
+      display: none;
     }
   </style>
 </head>
@@ -246,6 +401,7 @@
     <button id="restartBtn" class="game-button">Restart</button>
     <button id="viewRecordsBtn" class="game-button">View Records</button>
     <button id="continueBtn" class="game-button">Continue Game</button>
+    <button id="settingsBtn" class="game-button">Settings</button>
   </div>
   <div id="dialogBox"></div>
   <div id="recordBoard">
@@ -263,10 +419,58 @@
       <div class="progress-fill"></div>
     </div>
   </div>
+  <div id="devPanel">
+    <h3>Developer Mode</h3>
+    <div>
+      <button class="dev-button" id="devLevelOldKingdom">Level 1</button>
+      <button class="dev-button" id="devLevelDesert">Level 2</button>
+      <button class="dev-button" id="devLevelTundra">Level 3</button>
+      <button class="dev-button" id="devLevelCastle">Boss Level</button>
+    </div>
+    <div style="margin-top: 10px;">
+      <button class="dev-button" id="devGodMode">God Mode</button>
+      <button class="dev-button" id="devAddCoins">+10 Coins</button>
+      <button class="dev-button" id="devGiveGun">Give Gun</button>
+    </div>
+    <div style="margin-top: 10px;">
+      <button class="dev-button" id="devShowInfo">Debug Info</button>
+      <button class="dev-button" id="devClose">Close</button>
+    </div>
+  </div>
+  <div id="settingsPanel">
+    <h2>Game Settings</h2>
+    <div class="settings-row">
+      <label for="graphicsQuality">Graphics Quality:</label>
+      <select id="graphicsQuality">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+      </select>
+    </div>
+    <div class="settings-row">
+      <label for="musicVolume">Music Volume:</label>
+      <input type="range" id="musicVolume" min="0" max="100" value="50">
+    </div>
+    <div class="settings-row">
+      <label for="sfxVolume">SFX Volume:</label>
+      <input type="range" id="sfxVolume" min="0" max="100" value="70">
+    </div>
+    <div class="settings-row">
+      <label for="showFPS">Show FPS:</label>
+      <input type="checkbox" id="showFPS">
+    </div>
+    <div class="settings-row">
+      <label for="showPerformance">Show Performance:</label>
+      <input type="checkbox" id="showPerformance">
+    </div>
+    <button id="closeSettingsBtn">Save & Close</button>
+  </div>
+  <div id="fpsCounter">FPS: 60</div>
+  <div id="performanceIndicator">Performance: 100%</div>
 
   <script>
     // ===== GAME ENGINE =====
-    
+
     // Canvas setup
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
@@ -277,9 +481,13 @@
     window.addEventListener("resize", () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+
+      // Update camera dimensions
+      camera.width = canvas.width;
+      camera.height = canvas.height;
     });
 
-    // Game States: 'start', 'loading', 'world', 'talk', 'combat', 'bossFight', 'win', 'over', 'records'
+    // Game States: 'start', 'loading', 'world', 'talk', 'combat', 'bossFight', 'win', 'over', 'records', 'settings'
     let gameState = "start";
 
     // Global Speedrun Timer (in ms)
@@ -288,13 +496,38 @@
     let lastTime = 0;
     let isPaused = false;
 
+    // Frame rate and time management
+    const TARGET_FPS = 60;
+    const FRAME_TIME = 1000 / TARGET_FPS;
+    let deltaTime = 0;
+    let accumulator = 0;
+    let fpsArray = [];
+    let currentFps = 0;
+
+    // Performance monitoring
+    let performanceRatio = 1.0;
+    let showPerformanceIndicator = false;
+    let lastPerformanceUpdate = 0;
+    const PERFORMANCE_UPDATE_INTERVAL = 1000; // Update every second
+
+    // Debug and developer mode
+    let isDevMode = false;
+    let showDebugInfo = false;
+    let godMode = false;
+
+    // Graphics settings
+    let graphicsQuality = "medium";
+    let showFpsCounter = false;
+    let musicVolume = 50;
+    let sfxVolume = 70;
+
     // Game objects
     const player = {
       x: 100,
       y: 300,
       width: 30,
       height: 30,
-      speed: 4,
+      speed: 480, // pixels per second (doubled from 240)
       color: "red",
       weapon: "sword",
       hasGun: false,
@@ -306,6 +539,52 @@
       coins: 0,
       experience: 0,
       level: 1,
+      // Visual effects
+      trail: [],
+      maxTrailLength: 5,
+      // Animation
+      animationFrame: 0,
+      animationTimer: 0,
+      animationSpeed: 150, // ms per frame
+    };
+
+    // Secret car object
+    const secretCar = {
+      x: 0,
+      y: 0,
+      width: 60,
+      height: 30,
+      color: "blue",
+      found: false,
+      render: function (ctx) {
+        if (!this.found) return;
+
+        // Car body
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+
+        // Car windows
+        ctx.fillStyle = "lightblue";
+        ctx.fillRect(this.x + 10, this.y - 10, 20, 10);
+
+        // Car wheels
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.arc(this.x + 15, this.y + this.height, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(this.x + this.width - 15, this.y + this.height, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Headlights
+        ctx.fillStyle = "yellow";
+        ctx.beginPath();
+        ctx.arc(this.x + 5, this.y + this.height - 10, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(this.x + this.width - 5, this.y + this.height - 10, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
     };
 
     // Camera system
@@ -314,19 +593,34 @@
       y: 0,
       width: canvas.width,
       height: canvas.height,
+      targetX: 0,
+      targetY: 0,
       follow: function (target) {
         // Calculate desired camera position (centered on target)
-        const targetX = target.x - this.width / 2 + target.width / 2;
-        const targetY = target.y - this.height / 2 + target.height / 2;
+        this.targetX = target.x - this.width / 2 + target.width / 2;
+        this.targetY = target.y - this.height / 2 + target.height / 2;
 
         // Smoothly move camera toward target (easing)
-        this.x += (targetX - this.x) * 0.1;
-        this.y += (targetY - this.y) * 0.1;
+        this.x += (this.targetX - this.x) * 0.1;
+        this.y += (this.targetY - this.y) * 0.1;
 
-        // Clamp camera to world bounds
-        this.x = Math.max(0, Math.min(this.x, currentLevel.width - this.width));
-        this.y = Math.max(0, Math.min(this.y, currentLevel.height - this.height));
+        // Clamp camera to world bounds - only if currentLevel exists and has width/height
+        if (currentLevel && currentLevel.width && currentLevel.height) {
+          // Ensure camera doesn't go beyond level boundaries
+          this.x = Math.max(0, Math.min(this.x, currentLevel.width - this.width));
+          this.y = Math.max(0, Math.min(this.y, currentLevel.height - this.height));
+        }
       },
+      isVisible: function (obj, padding = 200) {
+        // More generous padding and simpler check
+        return (
+          obj.x + obj.width + padding > this.x &&
+          obj.x - padding < this.x + this.width &&
+          obj.y + obj.height + padding > this.y &&
+          obj.y - padding < this.y + this.height &&
+          obj.y - padding < this.y + this.height
+        );
+      }
     };
 
     // Game levels
@@ -339,6 +633,7 @@
     let coins = [];
     let bullets = [];
     let activeNPCs = [];
+    let particles = [];
 
     // Timers
     let goonTimer = 0;
@@ -349,7 +644,7 @@
     // Input handling
     const keys = {};
     let dialogActive = false;
-    
+
     window.addEventListener("keydown", (e) => {
       keys[e.key] = true;
 
@@ -383,7 +678,7 @@
       }
 
       // Shoot gun in combat
-      if (key.toLowerCase() === "s" && (gameState === "combat" || gameState === "world") && player.hasGun) {
+      if (key.toLowerCase() === "s" && (gameState === "combat" || gameState === "world" || gameState === "bossFight") && player.hasGun) {
         shootGun();
       }
 
@@ -396,11 +691,125 @@
       if (key.toLowerCase() === "p" && (gameState === "world" || gameState === "combat" || gameState === "bossFight")) {
         togglePause();
       }
+
+      // Developer mode activation
+      if (key === "d" && (gameState === "world" || gameState === "combat" || gameState === "bossFight" || gameState === "start")) {
+        promptDevCode();
+      }
+
+      // Settings menu
+      if (key === "o" && (gameState === "world" || gameState === "combat" || gameState === "bossFight" || gameState === "start")) {
+        toggleSettings();
+      }
+
+      // Add after the gun shooting code
+      if (key.toLowerCase() === "a" && (gameState === "combat" || gameState === "world" || gameState === "bossFight")) {
+        useSword();
+      }
+    }
+
+    function promptDevCode() {
+      const code = prompt("Enter developer code:");
+      if (code === "1998") {
+        isDevMode = true;
+        document.getElementById("devPanel").style.display = "block";
+        showNotification("Developer Mode Activated");
+      }
     }
 
     function togglePause() {
       isPaused = !isPaused;
       showNotification(isPaused ? "Game Paused" : "Game Resumed");
+    }
+
+    function toggleSettings() {
+      if (gameState === "settings") {
+        closeSettings();
+      } else {
+        openSettings();
+      }
+    }
+
+    function openSettings() {
+      const prevState = gameState;
+      gameState = "settings";
+      document.getElementById("settingsPanel").style.display = "block";
+
+      // Set current values
+      document.getElementById("graphicsQuality").value = graphicsQuality;
+      document.getElementById("musicVolume").value = musicVolume;
+      document.getElementById("sfxVolume").value = sfxVolume;
+      document.getElementById("showFPS").checked = showFpsCounter;
+      document.getElementById("showPerformance").checked = showPerformanceIndicator;
+
+      // Store previous state to return to
+      document.getElementById("settingsPanel").dataset.prevState = prevState;
+    }
+
+    function closeSettings() {
+      // Save settings
+      graphicsQuality = document.getElementById("graphicsQuality").value;
+      musicVolume = parseInt(document.getElementById("musicVolume").value);
+      sfxVolume = parseInt(document.getElementById("sfxVolume").value);
+      showFpsCounter = document.getElementById("showFPS").checked;
+      showPerformanceIndicator = document.getElementById("showPerformance").checked;
+
+      // Update FPS counter visibility
+      document.getElementById("fpsCounter").style.display = showFpsCounter ? "block" : "none";
+      document.getElementById("performanceIndicator").style.display = showPerformanceIndicator ? "block" : "none";
+
+      // Apply graphics settings
+      applyGraphicsSettings();
+
+      // Return to previous state
+      const prevState = document.getElementById("settingsPanel").dataset.prevState || "start";
+      gameState = prevState;
+      document.getElementById("settingsPanel").style.display = "none";
+
+      // Save settings to localStorage
+      saveSettings();
+    }
+
+    function saveSettings() {
+      const settings = {
+        graphicsQuality,
+        musicVolume,
+        sfxVolume,
+        showFpsCounter,
+        showPerformanceIndicator
+      };
+      localStorage.setItem("goonerbaitSettings", JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+      const savedSettings = localStorage.getItem("goonerbaitSettings");
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        graphicsQuality = settings.graphicsQuality || "medium";
+        musicVolume = settings.musicVolume !== undefined ? settings.musicVolume : 50;
+        sfxVolume = settings.sfxVolume !== undefined ? settings.sfxVolume : 70;
+        showFpsCounter = settings.showFpsCounter || false;
+        showPerformanceIndicator = settings.showPerformanceIndicator || false;
+
+        // Apply loaded settings
+        document.getElementById("fpsCounter").style.display = showFpsCounter ? "block" : "none";
+        document.getElementById("performanceIndicator").style.display = showPerformanceIndicator ? "block" : "none";
+        applyGraphicsSettings();
+      }
+    }
+
+    function applyGraphicsSettings() {
+      switch (graphicsQuality) {
+        case "low":
+          player.maxTrailLength = 0;
+          break;
+        case "medium":
+          player.maxTrailLength = 5;
+          break;
+        case "high":
+          player.maxTrailLength = 10;
+          break;
+      }
     }
 
     function shootGun() {
@@ -410,13 +819,89 @@
         x: player.x + player.width / 2,
         y: player.y + player.height / 2,
         radius: 5,
-        speed: 8,
+        speed: 480, // pixels per second (was 8 pixels per frame)
         direction: direction,
         damage: 5,
         color: "black",
         lifetime: 2000, // Bullets disappear after 2 seconds
         timeLeft: 2000,
+        fromPlayer: true // Flag to identify player bullets
       });
+
+      // Create muzzle flash particles
+      createParticles(
+        player.x + player.width / 2 + direction.x * 15,
+        player.y + player.height / 2 + direction.y * 15,
+        10,
+        "orange",
+        0.5,
+        300
+      );
+    }
+
+    function useSword() {
+      // Get direction for sword swing
+      const direction = getPlayerDirection();
+
+      // Create sword swing effect
+      createParticles(
+        player.x + player.width / 2 + direction.x * 20,
+        player.y + player.height / 2 + direction.y * 20,
+        15,
+        "silver",
+        1,
+        300
+      );
+
+      // Check for enemies in sword range
+      for (let i = goons.length - 1; i >= 0; i--) {
+        const goon = goons[i];
+        const dx = goon.x + goon.width / 2 - (player.x + player.width / 2);
+        const dy = goon.y + goon.height / 2 - (player.y + player.height / 2);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < 60) { // Sword range
+          goon.health -= 2; // Sword does 2 damage
+
+          // Create hit particles
+          createParticles(
+            goon.x + goon.width / 2,
+            goon.y + goon.height / 2,
+            5,
+            "silver",
+            0.5,
+            300
+          );
+
+          if (goon.health <= 0) {
+            // Create death particles
+            createParticles(
+              goon.x + goon.width / 2,
+              goon.y + goon.height / 2,
+              15,
+              "black",
+              1,
+              800
+            );
+
+            // Drop a coin when goon dies (50% chance)
+            if (Math.random() > 0.5) {
+              coins.push({
+                x: goon.x + goon.width / 2 - 10,
+                y: goon.y + goon.height / 2 - 10,
+                width: 20,
+                height: 20,
+                color: "gold",
+                // Animation
+                animationFrame: 0,
+                animationTimer: 0,
+                animationSpeed: 150,
+              });
+            }
+            goons.splice(i, 1);
+          }
+        }
+      }
     }
 
     function getPlayerDirection() {
@@ -440,9 +925,12 @@
     }
 
     function attackBoss() {
-      if (!currentLevel.boss) return;
+      if (!currentLevel || !currentLevel.boss) return;
 
-      const distance = Math.sqrt(Math.pow(currentLevel.boss.x - player.x, 2) + Math.pow(currentLevel.boss.y - player.y, 2));
+      const distance = Math.sqrt(
+        Math.pow(currentLevel.boss.x + currentLevel.boss.width / 2 - (player.x + player.width / 2), 2) +
+        Math.pow(currentLevel.boss.y + currentLevel.boss.height / 2 - (player.y + player.height / 2), 2)
+      );
 
       if (distance < 100) {
         // Player must be close to boss to damage it
@@ -451,15 +939,36 @@
         // Visual feedback
         currentLevel.boss.color = "red";
         setTimeout(() => {
-          if (currentLevel.boss) {
+          if (currentLevel && currentLevel.boss) {
             currentLevel.boss.color = "purple";
           }
         }, 100);
 
+        // Create hit particles
+        createParticles(
+          currentLevel.boss.x + currentLevel.boss.width / 2,
+          currentLevel.boss.y + currentLevel.boss.height / 2,
+          15,
+          "red",
+          1,
+          500
+        );
+
         if (currentLevel.boss.hp <= 0) {
+          // Create explosion particles
+          createParticles(
+            currentLevel.boss.x + currentLevel.boss.width / 2,
+            currentLevel.boss.y + currentLevel.boss.height / 2,
+            50,
+            "purple",
+            2,
+            1500
+          );
+
           gameState = "win";
           finalTime = speedrunTime;
           document.getElementById("viewRecordsBtn").style.display = "inline-block";
+          document.getElementById("restartBtn").style.display = "inline-block";
           saveGameProgress({ completed: true });
         }
       }
@@ -526,6 +1035,7 @@
       speedrunTime = 0;
       finalTime = 0;
       currentLevelIndex = 0;
+      secretCar.found = false;
 
       // Show loading screen
       showLoadingScreen("Loading Old Kingdom...");
@@ -561,6 +1071,7 @@
       // Restore game progress
       currentLevelIndex = savedGame.currentLevel;
       speedrunTime = savedGame.speedrunTime || 0;
+      secretCar.found = savedGame.secretCarFound || false;
 
       // Show loading screen
       showLoadingScreen(`Loading ${levels[currentLevelIndex].name}...`);
@@ -569,7 +1080,14 @@
       setTimeout(() => {
         loadLevel(currentLevelIndex);
         hideLoadingScreen();
-        gameState = "world";
+
+        // Set correct game state based on level
+        if (currentLevelIndex === levels.length - 1) {
+          gameState = "bossFight";
+        } else {
+          gameState = "world";
+        }
+
         countryNameDisplayTime = COUNTRY_NAME_DISPLAY_DURATION;
         showNotification("Game Loaded Successfully!");
       }, 1500);
@@ -588,25 +1106,38 @@
       goons = [];
       coins = [];
       bullets = [];
+      particles = [];
 
       // Set up NPCs for this level
-      activeNPCs = currentLevel.npcs.map((npc) => ({
+      activeNPCs = currentLevel.npcs ? currentLevel.npcs.map((npc) => ({
         ...npc,
         width: 40,
         height: 40,
-      }));
+      })) : [];
 
       // Reset timers
       goonTimer = 0;
       coinTimer = 0;
 
-      // Update camera
-      camera.x = player.x - canvas.width / 2;
-      camera.y = player.y - canvas.height / 2;
+      // Position player at the start of the level if not continuing
+      if (player.x < 100 || player.x > currentLevel.width - 100) {
+        player.x = 100;
+        player.y = currentLevel.height / 2;
+      }
 
-      // Initialize level-specific elements
+      // Update camera to focus on player
+      camera.x = player.x - camera.width / 2;
+      camera.y = player.y - camera.height / 2;
+
+      // Initialize level-specific elements - ALWAYS call init
       if (currentLevel.init) {
         currentLevel.init();
+      }
+
+      // Position secret car in the current level
+      if (levelIndex === 2) { // Secret car in Frozen Tundra
+        secretCar.x = 5800;
+        secretCar.y = 800;
       }
 
       // Save game progress
@@ -623,7 +1154,7 @@
 
         // Position player at start of new level
         player.x = 100;
-        player.y = currentLevel.height / 2;
+        player.y = levels[currentLevelIndex].height / 2;
 
         // Load next level with delay to show loading screen
         setTimeout(() => {
@@ -646,50 +1177,118 @@
 
       // Load castle level with delay to show loading screen
       setTimeout(() => {
-        currentLevelIndex = levels.length - 1; // Castle is the last level
+        // Make sure we're loading the correct boss level
+        currentLevelIndex = 3; // Castle is the last level (index 3)
+
+        // Directly load the level to ensure proper initialization
         loadLevel(currentLevelIndex);
-        gameState = "bossFight";
-        hideLoadingScreen();
-        showNotification("Boss Fight Begins! Find and defeat the boss!");
+
+        // Ensure boss is properly initialized
+        if (currentLevel && currentLevel.boss) {
+          // Reset boss health
+          currentLevel.boss.hp = currentLevel.boss.maxHp;
+          currentLevel.boss.attackProjectiles = [];
+          currentLevel.boss.state = "idle";
+          currentLevel.boss.lastStateChange = 0;
+
+          // Position player in a good starting position for the boss fight
+          player.x = 2000;
+          player.y = 2400;
+
+          // Update camera to focus on player
+          camera.x = player.x - camera.width / 2;
+          camera.y = player.y - camera.height / 2;
+          camera.targetX = camera.x;
+          camera.targetY = camera.y;
+
+          gameState = "bossFight";
+          hideLoadingScreen();
+          showNotification("Boss Fight Begins! Find and defeat the boss!");
+        } else {
+          console.error("Boss not properly initialized!");
+          gameState = "world";
+          hideLoadingScreen();
+          showNotification("Error loading boss fight. Try again.");
+        }
       }, 2000);
     }
 
     function updateGame(deltaTime) {
       if (isPaused) return;
 
+      // Apply performance scaling to ensure consistent game speed
+      const scaledDeltaTime = deltaTime * performanceRatio;
+
       // Update speedrun timer
-      if (gameState !== "start" && gameState !== "records" && gameState !== "loading") {
-        speedrunTime += deltaTime;
+      if (gameState !== "start" && gameState !== "records" && gameState !== "loading" && gameState !== "settings") {
+        speedrunTime += scaledDeltaTime;
       }
 
       // Update player invulnerability
       if (player.invulnerable) {
-        player.invulnerableTimer -= deltaTime;
+        player.invulnerableTimer -= scaledDeltaTime;
         if (player.invulnerableTimer <= 0) {
           player.invulnerable = false;
         }
+      }
+
+      // Update player animation
+      player.animationTimer += scaledDeltaTime;
+      if (player.animationTimer >= player.animationSpeed) {
+        player.animationFrame = (player.animationFrame + 1) % 4;
+        player.animationTimer = 0;
       }
 
       // Update based on game state
       switch (gameState) {
         case "world":
         case "combat":
-          updateWorldState(deltaTime);
+          updateWorldState(scaledDeltaTime);
           break;
         case "bossFight":
-          updateBossFightState(deltaTime);
+          updateBossFightState(scaledDeltaTime);
           break;
       }
 
       // Update country name display timer
       if (countryNameDisplayTime > 0) {
-        countryNameDisplayTime -= deltaTime;
+        countryNameDisplayTime -= scaledDeltaTime;
+      }
+
+      // Update particles
+      updateParticles(scaledDeltaTime);
+
+      // Check for secret car discovery
+      if (currentLevelIndex === 2 && !secretCar.found) {
+        const distance = Math.sqrt(
+          Math.pow(player.x - secretCar.x, 2) + Math.pow(player.y - secretCar.y, 2)
+        );
+
+        if (distance < 100) {
+          secretCar.found = true;
+          showNotification("You found the secret car!");
+
+          // Create discovery particles
+          createParticles(
+            secretCar.x + secretCar.width / 2,
+            secretCar.y + secretCar.height / 2,
+            30,
+            "gold",
+            1.5,
+            2000
+          );
+
+          saveGameProgress();
+        }
       }
     }
 
     function updateWorldState(deltaTime) {
       // Player movement
-      movePlayer();
+      movePlayer(deltaTime);
+
+      // Update player trail
+      updatePlayerTrail();
 
       // Camera follows player
       camera.follow(player);
@@ -711,13 +1310,16 @@
 
     function updateBossFightState(deltaTime) {
       // Player movement with wall collision detection
-      movePlayerWithCollision();
+      movePlayerWithCollision(deltaTime);
+
+      // Update player trail
+      updatePlayerTrail();
 
       // Camera follows player
       camera.follow(player);
 
       // Update boss behavior
-      if (currentLevel.updateBoss) {
+      if (currentLevel && currentLevel.updateBoss) {
         currentLevel.updateBoss(deltaTime);
       }
 
@@ -725,35 +1327,63 @@
       updateBullets(deltaTime);
     }
 
-    function movePlayer() {
+    function updatePlayerTrail() {
+      // Add current position to trail
+      if (player.maxTrailLength > 0 &&
+        (keys["ArrowUp"] || keys["ArrowDown"] || keys["ArrowLeft"] || keys["ArrowRight"])) {
+        player.trail.push({
+          x: player.x + player.width / 2,
+          y: player.y + player.height / 2,
+          alpha: 0.7
+        });
+
+        // Limit trail length
+        if (player.trail.length > player.maxTrailLength) {
+          player.trail.shift();
+        }
+      }
+
+      // Fade trail
+      for (let i = 0; i < player.trail.length; i++) {
+        player.trail[i].alpha -= 0.01;
+        if (player.trail[i].alpha <= 0) {
+          player.trail.splice(i, 1);
+          i--;
+        }
+      }
+    }
+
+    function movePlayer(deltaTime) {
       let newX = player.x;
       let newY = player.y;
+      const moveDistance = player.speed * (deltaTime / 1000);
 
       if (keys["ArrowUp"] && player.y > 0) {
-        newY -= player.speed;
+        newY -= moveDistance;
       }
       if (keys["ArrowDown"] && player.y + player.height < currentLevel.height) {
-        newY += player.speed;
+        newY += moveDistance;
       }
       if (keys["ArrowLeft"] && player.x > 0) {
-        newX -= player.speed;
+        newX -= moveDistance;
       }
       if (keys["ArrowRight"] && player.x + player.width < currentLevel.width) {
-        newX += player.speed;
+        newX += moveDistance;
       }
 
       player.x = newX;
       player.y = newY;
     }
 
-    function movePlayerWithCollision() {
+    function movePlayerWithCollision(deltaTime) {
       let newX = player.x;
       let newY = player.y;
+      const moveDistance = player.speed * (deltaTime / 1000);
 
-      if (keys["ArrowUp"]) newY -= player.speed;
-      if (keys["ArrowDown"]) newY += player.speed;
-      if (keys["ArrowLeft"]) newX -= player.speed;
-      if (keys["ArrowRight"]) newX += player.speed;
+      if (keys["ArrowUp"]) newY -= moveDistance;
+      if (keys["ArrowDown"]) newY += moveDistance;
+      if (keys["ArrowLeft"]) newX -= moveDistance;
+      if (keys["ArrowRight"]) newX += moveDistance;
 
       // Check wall collisions before updating position
       if (!checkWallCollisions(newX, player.y)) {
@@ -766,7 +1396,7 @@
     }
 
     function checkWallCollisions(newX, newY) {
-      if (!currentLevel.walls) return false;
+      if (!currentLevel || !currentLevel.walls) return false;
 
       const playerRect = {
         x: newX,
@@ -776,6 +1406,11 @@
       };
 
       for (const wall of currentLevel.walls) {
+        if (wall.isRotated) {
+          // Skip rotated walls for now (simplified collision)
+          continue;
+        }
+
         if (checkCollision(playerRect, wall)) {
           return true;
         }
@@ -785,6 +1420,8 @@
     }
 
     function updateGoons(deltaTime) {
+      if (!currentLevel) return;
+
       // Spawn new goons
       goonTimer += deltaTime;
       if (goonTimer > 2000 / currentLevel.goonDensity) {
@@ -800,13 +1437,17 @@
           y: spawnY,
           width: size,
           height: size,
-          speed: 0.5 + Math.random(),
+          speed: 30 + Math.random() * 60, // pixels per second
           health: 3,
           damage: 2,
           attackCooldown: 0,
           attackRate: 1000,
           color: "black",
           direction: spawnSide === "left" ? 1 : -1,
+          // Animation
+          animationFrame: Math.floor(Math.random() * 4),
+          animationTimer: 0,
+          animationSpeed: 200 + Math.random() * 100,
         });
 
         goonTimer = 0;
@@ -816,6 +1457,18 @@
       for (let i = goons.length - 1; i >= 0; i--) {
         const goon = goons[i];
 
+        // Skip updating if not visible (optimization)
+        if (!camera.isVisible(goon)) {
+          continue;
+        }
+
+        // Update animation
+        goon.animationTimer += deltaTime;
+        if (goon.animationTimer >= goon.animationSpeed) {
+          goon.animationFrame = (goon.animationFrame + 1) % 4;
+          goon.animationTimer = 0;
+        }
+
         // Calculate direction to player
         const dx = player.x - goon.x;
         const dy = player.y - goon.y;
@@ -824,17 +1477,28 @@
         // Move toward player
         if (distance > 50) {
           // Don't get too close
-          goon.x += (dx / distance) * goon.speed;
-          goon.y += (dy / distance) * goon.speed;
+          const moveDistance = goon.speed * (deltaTime / 1000);
+          goon.x += (dx / distance) * moveDistance;
+          goon.y += (dy / distance) * moveDistance;
         }
 
         // Attack player if close enough and cooldown is ready
         goon.attackCooldown -= deltaTime;
         if (distance < 60 && goon.attackCooldown <= 0) {
-          if (!player.invulnerable) {
+          if (!player.invulnerable && !godMode) {
             player.health -= goon.damage;
             player.invulnerable = true;
             player.invulnerableTimer = player.invulnerableDuration;
+
+            // Create hit particles
+            createParticles(
+              player.x + player.width / 2,
+              player.y + player.height / 2,
+              10,
+              "red",
+              0.8,
+              500
+            );
 
             // Game over if player health reaches 0
             if (player.health <= 0) {
@@ -848,11 +1512,31 @@
         // Check if goon is hit by bullets
         for (let j = bullets.length - 1; j >= 0; j--) {
           const bullet = bullets[j];
-          if (checkCircleRectCollision(bullet, goon)) {
+          if (bullet.fromPlayer && checkCircleRectCollision(bullet, goon)) {
             goon.health -= bullet.damage;
             bullets.splice(j, 1);
 
+            // Create hit particles
+            createParticles(
+              bullet.x,
+              bullet.y,
+              5,
+              "orange",
+              0.5,
+              300
+            );
+
             if (goon.health <= 0) {
+              // Create death particles
+              createParticles(
+                goon.x + goon.width / 2,
+                goon.y + goon.height / 2,
+                15,
+                "black",
+                1,
+                800
+              );
+
               // Drop a coin when goon dies (50% chance)
               if (Math.random() > 0.5) {
                 coins.push({
@@ -861,6 +1545,10 @@
                   width: 20,
                   height: 20,
                   color: "gold",
+                  // Animation
+                  animationFrame: 0,
+                  animationTimer: 0,
+                  animationSpeed: 150,
                 });
               }
               goons.splice(i, 1);
@@ -877,6 +1565,8 @@
     }
 
     function updateCoins(deltaTime) {
+      if (!currentLevel) return;
+
       // Spawn new coins
       coinTimer += deltaTime;
       if (coinTimer > 5000) {
@@ -886,14 +1576,38 @@
           width: 20,
           height: 20,
           color: "gold",
+          // Animation
+          animationFrame: 0,
+          animationTimer: 0,
+          animationSpeed: 150,
         });
         coinTimer = 0;
+      }
+
+      // Update coin animations
+      for (const coin of coins) {
+        coin.animationTimer += deltaTime;
+        if (coin.animationTimer >= coin.animationSpeed) {
+          coin.animationFrame = (coin.animationFrame + 1) % 8;
+          coin.animationTimer = 0;
+        }
       }
 
       // Check coin collection
       for (let i = coins.length - 1; i >= 0; i--) {
         if (checkCollision(player, coins[i])) {
           player.coins += 1;
+
+          // Create collection particles
+          createParticles(
+            coins[i].x + coins[i].width / 2,
+            coins[i].y + coins[i].height / 2,
+            10,
+            "gold",
+            0.8,
+            500
+          );
+
           coins.splice(i, 1);
           saveGameProgress();
         }
@@ -905,8 +1619,9 @@
         const bullet = bullets[i];
 
         // Update bullet position
-        bullet.x += bullet.direction.x * bullet.speed;
-        bullet.y += bullet.direction.y * bullet.speed;
+        const moveDistance = bullet.speed * (deltaTime / 1000);
+        bullet.x += bullet.direction.x * moveDistance;
+        bullet.y += bullet.direction.y * moveDistance;
 
         // Update bullet lifetime
         bullet.timeLeft -= deltaTime;
@@ -916,27 +1631,152 @@
         }
 
         // Check wall collisions
-        if (currentLevel.walls && currentLevel.walls.some((wall) => checkCircleRectCollision(bullet, wall))) {
-          bullets.splice(i, 1);
-          continue;
+        if (currentLevel && currentLevel.walls) {
+          let hitWall = false;
+
+          for (const wall of currentLevel.walls) {
+            if (wall.isRotated) {
+              // Skip rotated walls for simplified collision
+              continue;
+            }
+
+            if (checkCircleRectCollision(bullet, wall)) {
+              hitWall = true;
+              break;
+            }
+          }
+
+          if (hitWall) {
+            // Create wall hit particles
+            createParticles(
+              bullet.x,
+              bullet.y,
+              8,
+              "gray",
+              0.5,
+              300
+            );
+
+            bullets.splice(i, 1);
+            continue;
+          }
         }
 
         // Check if bullet is out of bounds
-        if (bullet.x < 0 || bullet.x > currentLevel.width || bullet.y < 0 || bullet.y > currentLevel.height) {
+        if (!currentLevel || bullet.x < 0 || bullet.x > currentLevel.width || bullet.y < 0 || bullet.y > currentLevel.height) {
           bullets.splice(i, 1);
         }
       }
     }
 
+    function createParticles(x, y, count, color, size = 1, lifetime = 1000) {
+      // Skip particles on low graphics setting
+      if (graphicsQuality === "low") return;
+
+      // Limit particle count based on graphics quality
+      const actualCount = graphicsQuality === "high" ? count : Math.ceil(count / 2);
+
+      for (let i = 0; i < actualCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 50 + Math.random() * 100;
+        const particleSize = (Math.random() * 3 + 2) * size;
+
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: particleSize,
+          color,
+          alpha: 1,
+          lifetime,
+          timeLeft: lifetime,
+        });
+      }
+    }
+
+    function updateParticles(deltaTime) {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const particle = particles[i];
+
+        // Update position
+        particle.x += particle.vx * (deltaTime / 1000);
+        particle.y += particle.vy * (deltaTime / 1000);
+
+        // Apply gravity
+        particle.vy += 50 * (deltaTime / 1000);
+
+        // Update lifetime and alpha
+        particle.timeLeft -= deltaTime;
+        particle.alpha = particle.timeLeft / particle.lifetime;
+
+        // Remove dead particles
+        if (particle.timeLeft <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+    }
+
     function gameLoop(timestamp) {
+      // Calculate delta time
       if (!lastTime) lastTime = timestamp;
-      const deltaTime = timestamp - lastTime;
+      deltaTime = timestamp - lastTime;
       lastTime = timestamp;
 
-      if (gameState !== "records") {
-        updateGame(deltaTime);
-        renderGame();
+      // Cap delta time to prevent huge jumps after tab switch
+      if (deltaTime > 100) deltaTime = 100;
+
+      // Calculate FPS
+      if (showFpsCounter || showPerformanceIndicator) {
+        fpsArray.push(1000 / deltaTime);
+        if (fpsArray.length > 60) {
+          fpsArray.shift();
+        }
+
+        // Update FPS counter every 10 frames
+        if (timestamp % 10 < 1) {
+          const avgFps = Math.round(
+            fpsArray.reduce((sum, fps) => sum + fps, 0) / fpsArray.length
+          );
+
+          if (showFpsCounter) {
+            document.getElementById("fpsCounter").textContent = `FPS: ${avgFps}`;
+          }
+
+          currentFps = avgFps;
+        }
       }
+
+      // Update performance ratio periodically
+      if (timestamp - lastPerformanceUpdate > PERFORMANCE_UPDATE_INTERVAL) {
+        // Calculate performance ratio based on current FPS vs target FPS
+        // This helps maintain consistent game speed across different hardware
+        performanceRatio = TARGET_FPS / Math.max(currentFps, 1);
+
+        // Clamp performance ratio to reasonable bounds
+        performanceRatio = Math.max(0.5, Math.min(performanceRatio, 2.0));
+
+        // Update performance indicator
+        if (showPerformanceIndicator) {
+          const performancePercent = Math.round((1 / performanceRatio) * 100);
+          document.getElementById("performanceIndicator").textContent = `Performance: ${performancePercent}%`;
+        }
+
+        lastPerformanceUpdate = timestamp;
+      }
+
+      // Fixed time step for physics
+      accumulator += deltaTime;
+
+      while (accumulator >= FRAME_TIME) {
+        if (gameState !== "records" && gameState !== "settings") {
+          updateGame(FRAME_TIME);
+        }
+        accumulator -= FRAME_TIME;
+      }
+
+      // Render at full frame rate
+      renderGame();
 
       requestAnimationFrame(gameLoop);
     }
@@ -955,6 +1795,7 @@
         currentLevel: currentLevelIndex,
         speedrunTime: speedrunTime,
         lastSaved: new Date().toISOString(),
+        secretCarFound: secretCar.found,
         ...additionalData,
       };
 
@@ -1018,8 +1859,14 @@
     const viewRecordsBtn = document.getElementById("viewRecordsBtn");
     const restartBtn = document.getElementById("restartBtn");
     const continueBtn = document.getElementById("continueBtn");
+    const settingsBtn = document.getElementById("settingsBtn");
     const loadingScreen = document.getElementById("loadingScreen");
     const progressFill = document.querySelector(".progress-fill");
+    const devPanel = document.getElementById("devPanel");
+    const settingsPanel = document.getElementById("settingsPanel");
+    const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+    const fpsCounter = document.getElementById("fpsCounter");
+    const performanceIndicator = document.getElementById("performanceIndicator");
 
     // Dialog management
     let currentDialog = "";
@@ -1030,6 +1877,88 @@
     closeRecordBtn.addEventListener("click", closeRecordBoard);
     viewRecordsBtn.addEventListener("click", showRecordBoard);
     continueBtn.addEventListener("click", continueGame);
+    settingsBtn.addEventListener("click", toggleSettings);
+    closeSettingsBtn.addEventListener("click", closeSettings);
+
+    // Developer mode buttons
+    document.getElementById("devLevelOldKingdom").addEventListener("click", () => loadDevLevel(0));
+    document.getElementById("devLevelDesert").addEventListener("click", () => loadDevLevel(1));
+    document.getElementById("devLevelTundra").addEventListener("click", () => loadDevLevel(2));
+    document.getElementById("devLevelCastle").addEventListener("click", () => loadDevLevel(3));
+    document.getElementById("devGodMode").addEventListener("click", toggleGodMode);
+    document.getElementById("devAddCoins").addEventListener("click", () => { player.coins += 10; saveGameProgress(); });
+    document.getElementById("devGiveGun").addEventListener("click", () => { player.hasGun = true; saveGameProgress(); });
+    document.getElementById("devShowInfo").addEventListener("click", () => { showDebugInfo = !showDebugInfo; });
+    document.getElementById("devClose").addEventListener("click", () => { devPanel.style.display = "none"; });
+
+    function loadDevLevel(levelIndex) {
+      if (levelIndex === 3) {
+        // Special handling for boss level
+        gameState = "loading";
+        showLoadingScreen("Loading Castle Dungeon...");
+
+        // Clear any saved progress for the boss level to ensure fresh initialization
+        const savedGame = loadGameProgress();
+        if (savedGame) {
+          savedGame.currentLevel = 3;
+          localStorage.setItem("goonerbaitSave", JSON.stringify(savedGame));
+        }
+
+        setTimeout(() => {
+          // Directly load the boss level
+          currentLevelIndex = 3;
+          loadLevel(3);
+
+          // Ensure boss is properly initialized
+          if (currentLevel && currentLevel.boss) {
+            // Reset boss health
+            currentLevel.boss.hp = currentLevel.boss.maxHp;
+            currentLevel.boss.attackProjectiles = [];
+            currentLevel.boss.state = "idle";
+            currentLevel.boss.lastStateChange = 0;
+
+            // Position player in a good starting position for the boss fight
+            player.x = 2000;
+            player.y = 2400;
+
+            // Update camera to focus on player immediately without easing
+            camera.x = player.x - camera.width / 2;
+            camera.y = player.y - camera.height / 2;
+            camera.targetX = camera.x;
+            camera.targetY = camera.y;
+
+            gameState = "bossFight";
+            hideLoadingScreen();
+            showNotification("Boss Fight Begins! Find and defeat the boss!");
+          } else {
+            console.error("Boss not properly initialized!");
+            gameState = "world";
+            hideLoadingScreen();
+            showNotification("Error loading boss fight. Try again.");
+          }
+        }, 1000);
+      } else {
+        gameState = "loading";
+        showLoadingScreen(`Loading ${levels[levelIndex].name}...`);
+
+        setTimeout(() => {
+          loadLevel(levelIndex);
+          hideLoadingScreen();
+          gameState = "world";
+          countryNameDisplayTime = COUNTRY_NAME_DISPLAY_DURATION;
+        }, 1000);
+      }
+    }
+
+    function toggleGodMode() {
+      godMode = !godMode;
+      if (godMode) {
+        player.health = player.maxHealth;
+        showNotification("God Mode Enabled");
+      } else {
+        showNotification("God Mode Disabled");
+      }
+    }
 
     function restartGame() {
       startNewGame();
@@ -1173,6 +2102,11 @@
         case "over":
           renderGameOverScreen();
           break;
+        case "settings":
+          // Settings are handled by HTML, just render a dimmed background
+          ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          break;
       }
     }
 
@@ -1193,27 +2127,54 @@
         ctx.fillRect(x, y, size, size);
       }
 
+      // Animated stars (twinkle effect)
+      for (let i = 0; i < 50; i++) {
+        const x = Math.sin(Date.now() / 1000 + i) * canvas.width / 2 + canvas.width / 2;
+        const y = Math.cos(Date.now() / 1000 + i * 2) * canvas.height / 2 + canvas.height / 2;
+        const size = (Math.sin(Date.now() / 500 + i) + 1.5) * 2;
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.7 + Math.sin(Date.now() / 300 + i) * 0.3})`;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
       // Title
       ctx.fillStyle = "white";
       ctx.font = "50px monospace";
       ctx.textAlign = "center";
       ctx.fillText("GOONERBAIT 3D Adventure", canvas.width / 2, canvas.height / 3);
 
+      // Title shadow
+      ctx.fillStyle = "rgba(0, 100, 255, 0.5)";
+      ctx.fillText("GOONERBAIT 3D Adventure", canvas.width / 2 + 2, canvas.height / 3 + 2);
+
       // Subtitle
       ctx.font = "30px sans-serif";
+      ctx.fillStyle = "white";
       ctx.fillText("Press RIGHT ARROW to start your journey", canvas.width / 2, canvas.height / 2);
+
+      // Animated arrow
+      const arrowX = canvas.width / 2 + 200 + Math.sin(Date.now() / 300) * 10;
+      ctx.beginPath();
+      ctx.moveTo(arrowX, canvas.height / 2);
+      ctx.lineTo(arrowX + 20, canvas.height / 2 - 10);
+      ctx.lineTo(arrowX + 20, canvas.height / 2 + 10);
+      ctx.closePath();
+      ctx.fill();
 
       // Version
       ctx.font = "16px sans-serif";
-      ctx.fillText("Enhanced Edition v2.0", canvas.width / 2, canvas.height / 2 + 40);
+      ctx.fillText("Enhanced Edition v2.3", canvas.width / 2, canvas.height / 2 + 40);
 
       // Controls info
       ctx.font = "18px sans-serif";
-      ctx.fillText("Controls: Arrow Keys to move, E to interact, S to shoot", canvas.width / 2, canvas.height - 100);
-      ctx.fillText("P to pause, SPACE to attack boss", canvas.width / 2, canvas.height - 70);
+      ctx.fillText("Controls: Arrow Keys to move, E to interact, S to shoot, A to swing sword", canvas.width / 2, canvas.height - 100);
+      ctx.fillText("P to pause, O for settings, SPACE to attack boss, D for developer mode", canvas.width / 2, canvas.height - 70);
 
       // Continue button visibility
       continueBtn.style.display = loadGameProgress() && !loadGameProgress().completed ? "inline-block" : "none";
+      settingsBtn.style.display = "inline-block";
     }
 
     function renderGameWorld() {
@@ -1223,15 +2184,18 @@
       // Apply camera transform
       ctx.translate(-camera.x, -camera.y);
 
-      // Render level background
+      // Render level background - always render regardless of visibility
       if (currentLevel && currentLevel.renderBackground) {
         currentLevel.renderBackground(ctx);
       }
 
-      // Render level-specific elements
+      // Render level-specific elements - always render regardless of visibility
       if (currentLevel && currentLevel.render) {
         currentLevel.render(ctx);
       }
+
+      // Render player trail
+      renderPlayerTrail();
 
       // Render game objects
       renderCoins();
@@ -1239,9 +2203,15 @@
       renderNPCs();
       renderBullets();
       renderPlayer();
+      renderParticles();
+
+      // Render secret car if found
+      if (secretCar.found && currentLevelIndex === 2) {
+        secretCar.render(ctx);
+      }
 
       // Render boss if in boss fight
-      if (gameState === "bossFight" && currentLevel.renderBoss) {
+      if (gameState === "bossFight" && currentLevel && currentLevel.renderBoss) {
         currentLevel.renderBoss(ctx);
       }
 
@@ -1252,7 +2222,7 @@
       renderUI();
 
       // Render minimap if in boss fight
-      if (gameState === "bossFight" && currentLevel.renderMinimap) {
+      if (gameState === "bossFight" && currentLevel && currentLevel.renderMinimap) {
         currentLevel.renderMinimap(ctx);
       }
 
@@ -1260,6 +2230,85 @@
       if (isPaused) {
         renderPauseOverlay();
       }
+
+      // Render debug info if enabled
+      if (showDebugInfo) {
+        renderDebugInfo();
+      }
+    }
+
+    function renderPlayerTrail() {
+      for (let i = 0; i < player.trail.length; i++) {
+        const trail = player.trail[i];
+        ctx.fillStyle = `rgba(255, 100, 100, ${trail.alpha})`;
+        ctx.beginPath();
+        ctx.arc(trail.x, trail.y, player.width / 3 * (i / player.trail.length), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function renderParticles() {
+      for (const particle of particles) {
+        ctx.fillStyle = `rgba(${hexToRgb(particle.color)}, ${particle.alpha})`;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function hexToRgb(hex) {
+      // Default colors if hex is a named color
+      const namedColors = {
+        "red": "255, 0, 0",
+        "green": "0, 255, 0",
+        "blue": "0, 0, 255",
+        "yellow": "255, 255, 0",
+        "orange": "255, 165, 0",
+        "purple": "128, 0, 128",
+        "black": "0, 0, 0",
+        "white": "255, 255, 255",
+        "gray": "128, 128, 128",
+        "gold": "255, 215, 0"
+      };
+
+      if (namedColors[hex]) {
+        return namedColors[hex];
+      }
+
+      // Otherwise parse hex
+      let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ?
+        parseInt(result[1], 16) + "," + parseInt(result[2], 16) + "," + parseInt(result[3], 16) :
+        "255, 255, 255";
+    }
+
+    function renderDebugInfo() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.fillRect(10, 110, 300, 220);
+
+      ctx.fillStyle = "#00ff00";
+      ctx.font = "14px monospace";
+      ctx.textAlign = "left";
+
+      const debugInfo = [
+        `FPS: ${currentFps}`,
+        `Performance Ratio: ${performanceRatio.toFixed(2)}`,
+        `Player: (${Math.round(player.x)}, ${Math.round(player.y)})`,
+        `Level: ${currentLevelIndex} - ${currentLevel ? currentLevel.name : "Unknown"}`,
+        `Game State: ${gameState}`,
+        `Goons: ${goons.length}`,
+        `Bullets: ${bullets.length}`,
+        `Coins: ${coins.length}`,
+        `Particles: ${particles.length}`,
+        `God Mode: ${godMode ? "ON" : "OFF"}`,
+        `Secret Car: ${secretCar.found ? "Found" : "Hidden"}`,
+        `Graphics: ${graphicsQuality}`,
+        `Delta Time: ${Math.round(deltaTime)}ms`
+      ];
+
+      debugInfo.forEach((info, index) => {
+        ctx.fillText(info, 20, 130 + index * 16);
+      });
     }
 
     function renderPauseOverlay() {
@@ -1277,10 +2326,24 @@
 
     function renderCoins() {
       coins.forEach((coin) => {
+        // Skip rendering if not visible (optimization)
+        if (!camera.isVisible(coin)) return;
+
         // Coin body
         ctx.fillStyle = coin.color;
         ctx.beginPath();
-        ctx.arc(coin.x + coin.width / 2, coin.y + coin.height / 2, coin.width / 2, 0, Math.PI * 2);
+
+        // Animated coin (rotating effect)
+        const wobble = Math.sin(Date.now() / 200 + coin.x * 0.1) * 2;
+        const width = coin.width - Math.abs(wobble);
+
+        ctx.ellipse(
+          coin.x + coin.width / 2,
+          coin.y + coin.height / 2,
+          width / 2,
+          coin.height / 2,
+          0, 0, Math.PI * 2
+        );
         ctx.fill();
 
         // Coin border
@@ -1293,11 +2356,23 @@
         ctx.beginPath();
         ctx.arc(coin.x + coin.width / 3, coin.y + coin.height / 3, coin.width / 6, 0, Math.PI * 2);
         ctx.fill();
+
+        // Coin dollar sign
+        ctx.fillStyle = "#B8860B";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("$", coin.x + coin.width / 2, coin.y + coin.height / 2);
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
       });
     }
 
     function renderGoons() {
       goons.forEach((goon) => {
+        // Skip rendering if not visible (optimization)
+        if (!camera.isVisible(goon)) return;
+
         // Goon body
         ctx.fillStyle = goon.color;
         ctx.fillRect(goon.x, goon.y, goon.width, goon.height);
@@ -1305,12 +2380,23 @@
         // Goon eyes
         ctx.fillStyle = "red";
         const eyeSize = goon.width / 5;
-        ctx.fillRect(goon.x + goon.width / 4 - eyeSize / 2, goon.y + goon.height / 3, eyeSize, eyeSize);
-        ctx.fillRect(goon.x + (goon.width * 3) / 4 - eyeSize / 2, goon.y + goon.height / 3, eyeSize, eyeSize);
+
+        // Animated eyes (blinking)
+        if (goon.animationFrame !== 3) {
+          ctx.fillRect(goon.x + goon.width / 4 - eyeSize / 2, goon.y + goon.height / 3, eyeSize, eyeSize);
+          ctx.fillRect(goon.x + (goon.width * 3) / 4 - eyeSize / 2, goon.y + goon.height / 3, eyeSize, eyeSize);
+        } else {
+          // Blinking
+          ctx.fillRect(goon.x + goon.width / 4 - eyeSize / 2, goon.y + goon.height / 3, eyeSize, eyeSize / 4);
+          ctx.fillRect(goon.x + (goon.width * 3) / 4 - eyeSize / 2, goon.y + goon.height / 3, eyeSize, eyeSize / 4);
+        }
 
         // Goon mouth
         ctx.fillStyle = "white";
-        ctx.fillRect(goon.x + goon.width / 4, goon.y + (goon.height * 2) / 3, goon.width / 2, goon.height / 10);
+
+        // Animated mouth
+        const mouthHeight = goon.height / 10 * (1 + Math.sin(goon.animationFrame / 2) * 0.5);
+        ctx.fillRect(goon.x + goon.width / 4, goon.y + (goon.height * 2) / 3, goon.width / 2, mouthHeight);
 
         // Goon health bar
         const healthPercent = goon.health / 3; // Assuming max health is 3
@@ -1323,6 +2409,9 @@
 
     function renderNPCs() {
       activeNPCs.forEach((npc) => {
+        // Skip rendering if not visible (optimization)
+        if (!camera.isVisible(npc)) return;
+
         // Shack base
         ctx.fillStyle = npc.type === "shop" ? "#8B4513" : "#654321";
         ctx.fillRect(npc.x, npc.y, npc.width, npc.height);
@@ -1340,6 +2429,17 @@
         ctx.fillStyle = "#4B3621";
         ctx.fillRect(npc.x + npc.width / 2 - 5, npc.y + npc.height - 15, 10, 15);
 
+        // Window
+        if (npc.type === "shop") {
+          ctx.fillStyle = "#87CEEB";
+          ctx.fillRect(npc.x + 5, npc.y + 5, 10, 10);
+
+          // Window frame
+          ctx.strokeStyle = "#4B3621";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(npc.x + 5, npc.y + 5, 10, 10);
+        }
+
         // Sign
         ctx.fillStyle = "#FAEBD7";
         ctx.font = "10px sans-serif";
@@ -1351,11 +2451,15 @@
 
         // Interaction hint
         if (checkCollision(player, npc)) {
+          // Animated hint
+          const bounceOffset = Math.sin(Date.now() / 300) * 3;
+
           ctx.fillStyle = "white";
           ctx.font = "12px sans-serif";
           ctx.textAlign = "center";
-          ctx.fillText("Press E to interact", npc.x + npc.width / 2, npc.y - 40);
+          ctx.fillText("Press E to interact", npc.x + npc.width / 2, npc.y - 40 + bounceOffset);
           ctx.textAlign = "left";
+          ctx.textBaseline = "alphabetic";
         }
       });
     }
@@ -1372,6 +2476,14 @@
         ctx.beginPath();
         ctx.arc(bullet.x - bullet.direction.x * 5, bullet.y - bullet.direction.y * 5, bullet.radius * 0.7, 0, Math.PI * 2);
         ctx.fill();
+
+        // Additional trail for high quality
+        if (graphicsQuality === "high") {
+          ctx.fillStyle = "rgba(255, 165, 0, 0.3)";
+          ctx.beginPath();
+          ctx.arc(bullet.x - bullet.direction.x * 10, bullet.y - bullet.direction.y * 10, bullet.radius * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
       });
     }
 
@@ -1389,22 +2501,67 @@
       // Player eyes
       ctx.fillStyle = "white";
       const eyeSize = player.width / 5;
-      ctx.fillRect(player.x + player.width / 4, player.y + player.height / 3, eyeSize, eyeSize);
-      ctx.fillRect(player.x + (player.width * 3) / 4 - eyeSize, player.y + player.height / 3, eyeSize, eyeSize);
+
+      // Animated eyes (blinking)
+      if (player.animationFrame !== 3) {
+        ctx.fillRect(player.x + player.width / 4, player.y + player.height / 3, eyeSize, eyeSize);
+        ctx.fillRect(player.x + (player.width * 3) / 4 - eyeSize, player.y + player.height / 3, eyeSize, eyeSize);
+      } else {
+        // Blinking
+        ctx.fillRect(player.x + player.width / 4, player.y + player.height / 3, eyeSize, eyeSize / 4);
+        ctx.fillRect(player.x + (player.width * 3) / 4 - eyeSize, player.y + player.height / 3, eyeSize, eyeSize / 4);
+      }
 
       // Player weapon
       if (player.hasGun) {
+        // Get direction for weapon orientation
+        const direction = getPlayerDirection();
+
+        // Gun base
         ctx.fillStyle = "black";
-        ctx.fillRect(player.x + player.width, player.y + player.height / 2 - 2, 10, 4);
+
+        // Rotate and position gun based on direction
+        ctx.save();
+        ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+        ctx.rotate(Math.atan2(direction.y, direction.x));
+
+        // Draw gun
+        ctx.fillRect(0, -2, 15, 4);
+
+        // Gun details
+        ctx.fillStyle = "#555";
+        ctx.fillRect(0, -4, 5, 8);
+
+        ctx.restore();
       } else {
+        // Sword
         ctx.fillStyle = "silver";
         ctx.fillRect(player.x + player.width, player.y + player.height / 2 - 5, 15, 2);
+
+        // Sword handle
+        ctx.fillStyle = "#8B4513";
+        ctx.fillRect(player.x + player.width, player.y + player.height / 2 - 7, 5, 6);
+      }
+
+      // God mode indicator
+      if (godMode) {
+        ctx.strokeStyle = "gold";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(player.x + player.width / 2, player.y + player.height / 2, player.width * 0.8, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Halo
+        ctx.fillStyle = "rgba(255, 215, 0, 0.3)";
+        ctx.beginPath();
+        ctx.arc(player.x + player.width / 2, player.y - 5, player.width / 2, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
     function renderUI() {
       // Background for UI
-      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
       ctx.fillRect(0, 0, canvas.width, 100);
 
       // Player stats
@@ -1443,7 +2600,7 @@
       ctx.fillText(`Health: ${player.health}/${player.maxHealth}`, 25, 87);
 
       // Boss health bar (if in boss fight)
-      if (gameState === "bossFight" && currentLevel.boss) {
+      if (gameState === "bossFight" && currentLevel && currentLevel.boss) {
         ctx.fillStyle = "black";
         ctx.fillRect(canvas.width / 2 - 100, 60, 200, 15);
 
@@ -1466,6 +2623,16 @@
         ctx.fillText(currentLevel.name, canvas.width / 2, 150);
         ctx.textAlign = "left";
       }
+
+      // Developer mode indicator
+      if (isDevMode) {
+        ctx.fillStyle = "#00ff00";
+        ctx.font = "14px monospace";
+        ctx.fillText("DEV MODE", canvas.width - 100, 60);
+      }
+
+      // Settings button visibility
+      settingsBtn.style.display = "inline-block";
     }
 
     function renderWinScreen() {
@@ -1476,24 +2643,70 @@
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      // Stars
+      ctx.fillStyle = "white";
+      for (let i = 0; i < 200; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = Math.random() * 2 + 1;
+        ctx.fillRect(x, y, size, size);
+      }
+
       // Victory text
       ctx.fillStyle = "gold";
       ctx.font = "60px monospace";
       ctx.textAlign = "center";
       ctx.fillText("VICTORY!", canvas.width / 2, canvas.height / 3);
 
+      // Animated glow
+      const glowSize = 10 + Math.sin(Date.now() / 300) * 5;
+      ctx.shadowColor = "gold";
+      ctx.shadowBlur = glowSize;
+      ctx.fillText("VICTORY!", canvas.width / 2, canvas.height / 3);
+      ctx.shadowBlur = 0;
+
       // Completion time
       ctx.fillStyle = "white";
       ctx.font = "30px sans-serif";
       ctx.fillText(`You completed the game in ${formatTime(finalTime)}`, canvas.width / 2, canvas.height / 2);
 
+      // Secret car status
+      if (secretCar.found) {
+        ctx.fillStyle = "lightblue";
+        ctx.font = "24px sans-serif";
+        ctx.fillText("You found the secret car!", canvas.width / 2, canvas.height / 2 + 40);
+
+        // Draw the car
+        const carX = canvas.width / 2 - 30;
+        const carY = canvas.height / 2 + 60;
+
+        // Car body
+        ctx.fillStyle = "blue";
+        ctx.fillRect(carX, carY, 60, 30);
+
+        // Car windows
+        ctx.fillStyle = "lightblue";
+        ctx.fillRect(carX + 10, carY - 10, 20, 10);
+
+        // Car wheels
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.arc(carX + 15, carY + 30, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(carX + 45, carY + 30, 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
       // Instructions
+      ctx.fillStyle = "white";
       ctx.font = "20px sans-serif";
-      ctx.fillText("Click 'View Records' to see the leaderboard", canvas.width / 2, canvas.height / 2 + 50);
+      ctx.fillText("Click 'View Records' to see the leaderboard", canvas.width / 2, canvas.height / 2 + 120);
 
       // Show buttons
       document.getElementById("restartBtn").style.display = "inline-block";
       document.getElementById("viewRecordsBtn").style.display = "inline-block";
+      settingsBtn.style.display = "inline-block";
     }
 
     function renderGameOverScreen() {
@@ -1510,7 +2723,23 @@
       ctx.textAlign = "center";
       ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 3);
 
+      // Animated blood drips
+      ctx.fillStyle = "#8B0000";
+      for (let i = 0; i < 10; i++) {
+        const x = canvas.width / 2 - 200 + i * 40;
+        const y = canvas.height / 3 + 20;
+        const height = 50 + Math.sin(Date.now() / 500 + i) * 30;
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + 10, y);
+        ctx.lineTo(x + 5, y + height);
+        ctx.closePath();
+        ctx.fill();
+      }
+
       // Death message
+      ctx.fillStyle = "white";
       ctx.font = "30px sans-serif";
       ctx.fillText("You have been defeated!", canvas.width / 2, canvas.height / 2);
 
@@ -1520,6 +2749,7 @@
 
       // Show restart button
       document.getElementById("restartBtn").style.display = "inline-block";
+      settingsBtn.style.display = "inline-block";
     }
 
     // ===== LEVEL DEFINITIONS =====
@@ -1527,8 +2757,8 @@
     // Old Kingdom Level
     levels[0] = {
       name: "Old Kingdom",
-      width: 6400, // 4x larger than original
-      height: 4800, // 4x larger than original
+      width: 4800, // Reduced from 6400
+      height: 3600, // Reduced from 4800
       goonDensity: 1,
       background: {
         sky: "#87CEEB", // Light blue sky
@@ -1558,7 +2788,7 @@
           dialog: "The castle lies beyond the desert. Many have tried to defeat the boss, but none have returned.",
         },
         {
-          x: 5500,
+          x: 3800,
           y: 3000,
           type: "talk",
           dialog:
@@ -1567,12 +2797,12 @@
       ],
 
       // Level-specific initialization
-      init: function() {
+      init: function () {
         // Add any level-specific initialization here
       },
 
       // Render level background
-      renderBackground: function(ctx) {
+      renderBackground: function (ctx) {
         const bg = this.background;
 
         // Sky gradient
@@ -1607,7 +2837,7 @@
         ctx.lineWidth = 3;
         ctx.beginPath();
         for (let x = 0; x < this.width; x += 100) {
-          const y = 1800 + Math.sin(x / 800) * 300 + Math.sin(x / 100) * 20;
+          const y = 1800 + Math.sin(x / 800) * 300 + Math.sin(x / 100 + Date.now() / 1000) * 20;
           if (x === 0) {
             ctx.moveTo(x, y);
           } else {
@@ -1636,10 +2866,15 @@
 
         // Trees or environment objects
         for (let i = 0; i < 100; i++) {
-          const treeHeight = 150 + Math.random() * 100;
+          const treeHeight = 150 + (i % 5) * 20; // Use deterministic height based on index
           const treeWidth = 80;
-          const x = i * 200 + Math.random() * 100;
+          const x = i * 200; // Fixed x position based on index
           const y = this.height - 400 - treeHeight;
+
+          // Only render trees that are visible (optimization)
+          if (!camera.isVisible({ x, y, width: treeWidth, height: treeHeight }, 200)) {
+            continue;
+          }
 
           // Tree trunk
           ctx.fillStyle = "#8B4513";
@@ -1664,23 +2899,72 @@
 
         // Add some flowers and grass details
         for (let i = 0; i < 500; i++) {
-          const x = Math.random() * this.width;
-          const y = this.height - 400 + Math.random() * 50;
-          const size = 5 + Math.random() * 10;
+          const x = (i * 37) % this.width; // Deterministic x position
+          const y = this.height - 400 + (i * 17) % 50; // Deterministic y position
 
-          // Random flower colors
+          // Only render flowers that are visible (optimization)
+          if (!camera.isVisible({ x, y, width: 10, height: 10 }, 200)) {
+            continue;
+          }
+
+          const size = 5 + (i % 10); // Deterministic size
+
+          // Fixed flower colors based on position
           const colors = ["#FF69B4", "#FF1493", "#FFA500", "#FFFF00", "#9370DB"];
-          const color = colors[Math.floor(Math.random() * colors.length)];
+          const color = colors[i % colors.length];
 
           ctx.fillStyle = color;
           ctx.beginPath();
           ctx.arc(x, y, size, 0, Math.PI * 2);
           ctx.fill();
         }
+
+        // Add landmarks for navigation
+        // Castle in the distance
+        ctx.fillStyle = "#444";
+        ctx.fillRect(this.width - 800, this.height - 800, 300, 400);
+        // Tower
+        ctx.fillStyle = "#555";
+        ctx.fillRect(this.width - 650, this.height - 1000, 100, 600);
+        // Flag on tower
+        ctx.fillStyle = "red";
+        ctx.beginPath();
+        ctx.moveTo(this.width - 600, this.height - 1000);
+        ctx.lineTo(this.width - 500, this.height - 950);
+        ctx.lineTo(this.width - 600, this.height - 900);
+        ctx.closePath();
+        ctx.fill();
+
+        // Add signposts for direction
+        for (let i = 0; i < 5; i++) {
+          const x = i * 1000 + 500;
+          const y = this.height - 350;
+
+          // Post
+          ctx.fillStyle = "#8B4513";
+          ctx.fillRect(x, y, 10, 50);
+
+          // Sign
+          ctx.fillStyle = "#DEB887";
+          ctx.fillRect(x - 30, y - 20, 70, 30);
+
+          // Arrow
+          ctx.fillStyle = "black";
+          ctx.beginPath();
+          ctx.moveTo(x + 30, y - 5);
+          ctx.lineTo(x + 50, y - 5);
+          ctx.lineTo(x + 50, y - 15);
+          ctx.lineTo(x + 70, y + 5);
+          ctx.lineTo(x + 50, y + 25);
+          ctx.lineTo(x + 50, y + 15);
+          ctx.lineTo(x + 30, y + 15);
+          ctx.closePath();
+          ctx.fill();
+        }
       },
 
       // Render any additional level-specific elements
-      render: function(ctx) {
+      render: function (ctx) {
         // Add any level-specific rendering here
       },
     };
@@ -1688,8 +2972,8 @@
     // Desert Realm Level
     levels[1] = {
       name: "Desert Realm",
-      width: 6400, // 4x larger than original
-      height: 4800, // 4x larger than original
+      width: 4800, // Reduced from 6400
+      height: 3600, // Reduced from 4800
       goonDensity: 2, // More goons than Old Kingdom
       background: {
         sky: "#FFD700", // Golden sky
@@ -1713,7 +2997,7 @@
           cost: 10,
         },
         {
-          x: 4800,
+          x: 3800,
           y: 1600,
           type: "talk",
           dialog: "The oasis is just ahead. It's the last source of water before the Frozen Tundra. Rest while you can.",
@@ -1721,7 +3005,7 @@
       ],
 
       // Level-specific initialization
-      init: function() {
+      init: function () {
         // Create oasis
         this.oasis = {
           x: 3500,
@@ -1733,7 +3017,7 @@
       },
 
       // Render level background
-      renderBackground: function(ctx) {
+      renderBackground: function (ctx) {
         const bg = this.background;
 
         // Sky gradient
@@ -1770,6 +3054,11 @@
           const duneHeight = 100 + Math.sin(i * 0.5) * 50;
           const duneWidth = 800;
           const x = i * 400 - 200;
+
+          // Only render dunes that are visible (optimization)
+          if (x + duneWidth < camera.x || x > camera.x + camera.width) {
+            continue;
+          }
 
           ctx.fillStyle = "#F4A460"; // Sandy brown
           ctx.beginPath();
@@ -1847,13 +3136,15 @@
               x + Math.cos(angle + 0.2) * 30,
               y + Math.sin(angle + 0.2) * 30 - 80,
               x + Math.cos(angle) * 10,
-              x + Math.cos(angle + 0.2) * 30,
-              y + Math.sin(angle + 0.2) * 30 - 80,
-              x + Math.cos(angle) * 10,
               y - 150,
             );
             ctx.lineTo(x + Math.cos(angle) * 15, y - 145);
-            ctx.quadraticCurveTo(x + Math.cos(angle - 0.2) * 30, y + Math.sin(angle - 0.2) * 30 - 80, x + 5, y);
+            ctx.quadraticCurveTo(
+              x + Math.cos(angle - 0.2) * 30,
+              y + Math.sin(angle - 0.2) * 30 - 80,
+              x + 5,
+              y,
+            );
             ctx.closePath();
             ctx.fill();
 
@@ -1883,10 +3174,16 @@
 
         // Cacti
         for (let i = 0; i < 50; i++) {
-          const x = Math.random() * this.width;
-          const y = this.height - 400 + Math.random() * 50;
-          const height = 80 + Math.random() * 120;
-          const width = 20 + Math.random() * 15;
+          const x = (i * 91) % this.width;
+          const y = this.height - 400 + (i * 23) % 50;
+
+          // Only render cacti that are visible (optimization)
+          if (x < camera.x - 50 || x > camera.x + camera.width + 50) {
+            continue;
+          }
+
+          const height = 80 + (i % 3) * 10;
+          const width = 20 + (i % 5);
 
           // Main cactus body
           ctx.fillStyle = "#2E8B57"; // Sea green
@@ -1911,10 +3208,29 @@
             );
           }
         }
+
+        // Add landmarks for navigation
+        // Pyramid in the distance
+        ctx.fillStyle = "#DAA520";
+        ctx.beginPath();
+        ctx.moveTo(this.width - 800, this.height - 400);
+        ctx.lineTo(this.width - 600, this.height - 800);
+        ctx.lineTo(this.width - 400, this.height - 400);
+        ctx.closePath();
+        ctx.fill();
+
+        // Oasis sign
+        ctx.fillStyle = "#4169E1";
+        ctx.fillRect(100, this.height - 600, 100, 50);
+        ctx.fillStyle = "white";
+        ctx.font = "16px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Oasis ->", 150, this.height - 570);
+        ctx.textAlign = "left";
       },
 
       // Render any additional level-specific elements
-      render: function(ctx) {
+      render: function (ctx) {
         // Check if player is in oasis and heal them
         if (this.oasis && checkCollision(player, this.oasis)) {
           if (player.health < player.maxHealth) {
@@ -1945,8 +3261,8 @@
     // Frozen Tundra Level
     levels[2] = {
       name: "Frozen Tundra",
-      width: 6400, // 4x larger than original
-      height: 4800, // 4x larger than original
+      width: 4800, // Reduced from 6400
+      height: 3600, // Reduced from 4800
       goonDensity: 3, // More goons than Desert Realm
       background: {
         sky: "#B0E0E6", // Powder blue sky
@@ -1970,7 +3286,7 @@
           cost: 15,
         },
         {
-          x: 5000,
+          x: 3800,
           y: 1800,
           type: "talk",
           dialog:
@@ -1979,10 +3295,10 @@
       ],
 
       // Level-specific initialization
-      init: function() {
+      init: function () {
         // Create ice cave
         this.iceCave = {
-          x: 4000,
+          x: 3000,
           y: 1500,
           width: 800,
           height: 600,
@@ -2001,7 +3317,7 @@
       },
 
       // Render level background
-      renderBackground: function(ctx) {
+      renderBackground: function (ctx) {
         const bg = this.background;
 
         // Sky gradient
@@ -2024,7 +3340,7 @@
           ctx.moveTo(0, y);
 
           for (let x = 0; x < this.width; x += 100) {
-            const waveHeight = Math.sin(x / 500 + i) * 100;
+            const waveHeight = Math.sin(x / 500 + i + Date.now() / 5000) * 100;
             ctx.lineTo(x, y + waveHeight);
           }
 
@@ -2038,6 +3354,11 @@
           const mountainHeight = 600 + Math.sin(i * 0.7) * 200;
           const mountainWidth = 1200;
           const x = i * 600;
+
+          // Only render mountains that are visible (optimization)
+          if (x + mountainWidth < camera.x || x > camera.x + camera.width) {
+            continue;
+          }
 
           // Mountain base
           ctx.fillStyle = bg.mountains;
@@ -2065,6 +3386,11 @@
         // Draw ice patches
         ctx.fillStyle = "rgba(135, 206, 250, 0.5)"; // Light sky blue with transparency
         for (const patch of this.icePatches) {
+          // Only render ice patches that are visible (optimization)
+          if (!camera.isVisible(patch, 100)) {
+            continue;
+          }
+
           ctx.beginPath();
           ctx.ellipse(
             patch.x + patch.width / 2,
@@ -2129,9 +3455,15 @@
 
         // Pine trees
         for (let i = 0; i < 100; i++) {
-          const x = Math.random() * this.width;
-          const y = this.height - 400 + Math.random() * 50;
-          const height = 150 + Math.random() * 100;
+          const x = (i * 47) % this.width;
+          const y = this.height - 400 + (i * 19) % 50;
+
+          // Only render trees that are visible (optimization)
+          if (x < camera.x - 100 || x > camera.x + camera.width + 100) {
+            continue;
+          }
+
+          const height = 150 + (i % 7) * 10;
 
           // Tree trunk
           ctx.fillStyle = "#8B4513"; // Saddle brown
@@ -2161,28 +3493,55 @@
 
             ctx.beginPath();
             ctx.moveTo(x, triangleY - triangleHeight + 10);
-            ctx.lineTo(x - triangleWidth / 2 + 10, triangleY - 5);
-            ctx.lineTo(x + triangleWidth / 2 - 10, triangleY - 5);
+            ctx.lineTo(x - triangleWidth / 2 + 10, y - 5);
+            ctx.lineTo(x + triangleWidth / 2 - 10, y - 5);
             ctx.closePath();
             ctx.fill();
           }
         }
 
-        // Falling snow
-        ctx.fillStyle = "#FFFFFF";
-        for (let i = 0; i < 500; i++) {
-          const x = Math.random() * this.width;
-          const y = Math.random() * this.height;
-          const size = 1 + Math.random() * 3;
+        // Add landmarks for navigation
+        // Ice cave in the distance
+        ctx.fillStyle = "#000033";
+        ctx.beginPath();
+        ctx.ellipse(this.width - 800, this.height - 400, 200, 100, 0, 0, Math.PI * 2);
+        ctx.fill();
 
-          ctx.beginPath();
-          ctx.arc(x, y, size, 0, Math.PI * 2);
-          ctx.fill();
+        // Frozen lake
+        ctx.fillStyle = "#ADD8E6";
+        ctx.fillRect(100, this.height - 600, 300, 200);
+        ctx.fillStyle = "white";
+        ctx.font = "16px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Frozen Lake", 250, this.height - 500);
+        ctx.textAlign = "left";
+
+        // Castle sign
+        ctx.fillStyle = "#8B4513";
+        ctx.fillRect(this.width - 200, 100, 100, 50);
+        ctx.fillStyle = "white";
+        ctx.font = "16px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Castle ->", this.width - 150, 130);
+        ctx.textAlign = "left";
+
+        // Falling snow
+        if (graphicsQuality !== "low") {
+          ctx.fillStyle = "#FFFFFF";
+          for (let i = 0; i < 200; i++) {
+            const x = (camera.x + Math.random() * camera.width) + Math.sin(Date.now() / 1000 + i) * 50;
+            const y = (camera.y + Math.random() * camera.height) + Math.cos(Date.now() / 1000 + i * 2) * 50;
+            const size = 1 + Math.random() * 3;
+
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       },
 
       // Render any additional level-specific elements
-      render: function(ctx) {
+      render: function (ctx) {
         // Check if player is on ice and make them slide
         for (const patch of this.icePatches) {
           if (checkCollision(player, patch)) {
@@ -2207,48 +3566,44 @@
     // Castle Level (Boss Fight)
     levels[3] = {
       name: "Castle Dungeon",
-      width: 12800, // Twice as large as other levels
-      height: 9600,
-      goonDensity: 2,
+      width: 6400, // Smaller than other levels to keep boss fight focused
+      height: 4800,
+      goonDensity: 0.5, // Fewer goons than other levels
       walls: [], // Will be populated in init
 
       // Boss definition
       boss: {
-        x: 11000,
-        y: 4800,
+        x: 3200,
+        y: 2400,
         width: 100,
         height: 100,
         hp: 50,
         maxHp: 50,
         color: "purple",
-        speed: 2,
-        attackRange: 400,
+        speed: 80, // pixels per second
+        attackRange: 300,
         attackCooldown: 0,
-        attackRate: 2000,
+        attackRate: 1500,
         damage: 10,
         attackProjectiles: [],
         state: "idle", // idle, chasing, attacking
         lastStateChange: 0,
-        stateDuration: 5000,
+        stateDuration: 3000,
+        // Animation
+        animationFrame: 0,
+        animationTimer: 0,
+        animationSpeed: 200,
       },
 
       // Level-specific initialization
-      init: function() {
+      init: function () {
         // Initialize castle walls
         this.initCastleWalls();
 
-        // Create checkpoints
-        this.checkpoints = [
-          { x: 2000, y: 4800, reached: false },
-          { x: 5000, y: 2000, reached: false },
-          { x: 8000, y: 7000, reached: false },
-        ];
-
         // Create health potions
         this.healthPotions = [
-          { x: 3000, y: 3000, width: 30, height: 30, healing: 20 },
-          { x: 6000, y: 6000, width: 30, height: 30, healing: 20 },
-          { x: 9000, y: 4800, width: 30, height: 30, healing: 50 },
+          { x: 1000, y: 1000, width: 30, height: 30, healing: 20 },
+          { x: 5400, y: 3800, width: 30, height: 30, healing: 20 },
         ];
 
         // Reset boss
@@ -2258,280 +3613,36 @@
         this.boss.lastStateChange = 0;
       },
 
-      initCastleWalls: function() {
+      initCastleWalls: function () {
         this.walls = [];
 
         // Outer walls
-        // Top wall
-        this.walls.push({
-          x: 0,
-          y: 0,
-          width: this.width,
-          height: 100,
-          color: "#8B4513",
-        });
+        this.walls.push({ x: 0, y: 0, width: this.width, height: 100, color: "#8B4513" }); // Top
+        this.walls.push({ x: 0, y: this.height - 100, width: this.width, height: 100, color: "#8B4513" }); // Bottom
+        this.walls.push({ x: 0, y: 0, width: 100, height: this.height, color: "#8B4513" }); // Left
+        this.walls.push({ x: this.width - 100, y: 0, width: 100, height: this.height, color: "#8B4513" }); // Right
 
-        // Bottom wall
-        this.walls.push({
-          x: 0,
-          y: this.height - 100,
-          width: this.width,
-          height: 100,
-          color: "#8B4513",
-        });
+        // Inner walls (maze-like structure)
+        this.walls.push({ x: 1000, y: 1000, width: 4400, height: 100, color: "#8B4513" });
+        this.walls.push({ x: 1000, y: 3800, width: 4400, height: 100, color: "#8B4513" });
+        this.walls.push({ x: 1000, y: 1000, width: 100, height: 2900, color: "#8B4513" });
+        this.walls.push({ x: 5400, y: 1000, width: 100, height: 2900, color: "#8B4513" });
 
-        // Left wall
-        this.walls.push({
-          x: 0,
-          y: 0,
-          width: 100,
-          height: this.height,
-          color: "#8B4513",
-        });
-
-        // Right wall
-        this.walls.push({
-          x: this.width - 100,
-          y: 0,
-          width: 100,
-          height: this.height,
-          color: "#8B4513",
-        });
-
-        // Create a complex maze structure
-
-        // Main corridor
-        this.walls.push({
-          x: 500,
-          y: 0,
-          width: 100,
-          height: 4000,
-          color: "#8B4513",
-        });
-
-        this.walls.push({
-          x: 500,
-          y: 5600,
-          width: 100,
-          height: 4000,
-          color: "#8B4513",
-        });
-
-        // First section - horizontal walls
-        for (let i = 0; i < 5; i++) {
-          this.walls.push({
-            x: 600,
-            y: 1000 + i * 1500,
-            width: 2000,
-            height: 100,
-            color: "#8B4513",
-          });
-        }
-
-        // First section - vertical walls
-        for (let i = 0; i < 4; i++) {
-          this.walls.push({
-            x: 1000 + i * 500,
-            y: 1100,
-            width: 100,
-            height: 1400,
-            color: "#8B4513",
-          });
-        }
-
-        // Second section - entrance
-        this.walls.push({
-          x: 2600,
-          y: 0,
-          width: 100,
-          height: 3000,
-          color: "#8B4513",
-        });
-
-        this.walls.push({
-          x: 2600,
-          y: 4000,
-          width: 100,
-          height: 5600,
-          color: "#8B4513",
-        });
-
-        // Second section - maze
-        for (let i = 0; i < 8; i++) {
-          // Horizontal walls
-          this.walls.push({
-            x: 2700,
-            y: 1000 + i * 1000,
-            width: 3000,
-            height: 100,
-            color: "#8B4513",
-          });
-
-          // Vertical walls
-          if (i < 7) {
-            this.walls.push({
-              x: 3200 + i * 400,
-              y: 1100 + i * 1000,
-              width: 100,
-              height: 900,
-              color: "#8B4513",
-            });
-          }
-        }
-
-        // Create openings in the walls
-        for (let i = 0; i < 7; i++) {
-          const wall = this.walls[this.walls.length - 7 + i];
-          const opening = Math.floor(Math.random() * 3);
-
-          if (opening === 0) {
-            // Opening on left
-            wall.width -= 200;
-            wall.x += 200;
-          } else if (opening === 1) {
-            // Opening in middle
-            const originalWidth = wall.width;
-            wall.width = originalWidth / 2 - 100;
-
-            this.walls.push({
-              x: wall.x + wall.width + 200,
-              y: wall.y,
-              width: originalWidth / 2 - 100,
-              height: wall.height,
-              color: wall.color,
-            });
-          } else {
-            // Opening on right
-            wall.width -= 200;
-          }
-        }
-
-        // Third section - boss area entrance
-        this.walls.push({
-          x: 5700,
-          y: 0,
-          width: 100,
-          height: 4000,
-          color: "#8B4513",
-        });
-
-        this.walls.push({
-          x: 5700,
-          y: 5600,
-          width: 100,
-          height: 4000,
-          color: "#8B4513",
-        });
-
-        // Third section - circular chambers
-        for (let i = 0; i < 3; i++) {
-          const centerX = 7000 + i * 1500;
-          const centerY = 4800;
-          const radius = 1000;
-          const segments = 16;
-          const wallThickness = 100;
-
-          // Create circular wall
-          for (let j = 0; j < segments; j++) {
-            const angle1 = (j / segments) * Math.PI * 2;
-            const angle2 = ((j + 1) / segments) * Math.PI * 2;
-
-            const x1 = centerX + Math.cos(angle1) * radius;
-            const y1 = centerY + Math.sin(angle1) * radius;
-            const x2 = centerX + Math.cos(angle2) * radius;
-            const y2 = centerY + Math.sin(angle2) * radius;
-
-            // Skip one segment to create an entrance
-            if (j !== 0) {
-              const dx = x2 - x1;
-              const dy = y2 - y1;
-              const length = Math.sqrt(dx * dx + dy * dy);
-              const normalX = dy / length;
-              const normalY = -dx / length;
-
-              this.walls.push({
-                x: x1,
-                y: y1,
-                width: length,
-                height: wallThickness,
-                angle: Math.atan2(dy, dx),
-                color: "#8B4513",
-                isRotated: true,
-              });
-            }
-          }
-
-          // Add some internal walls
-          for (let j = 0; j < 3; j++) {
-            const angle = Math.random() * Math.PI * 2;
-            const length = radius * 0.8;
-
-            this.walls.push({
-              x: centerX,
-              y: centerY,
-              width: length,
-              height: wallThickness,
-              angle: angle,
-              color: "#8B4513",
-              isRotated: true,
-            });
-          }
-        }
-
-        // Final boss chamber
-        const bossX = 10500;
-        const bossY = 4800;
-        const bossRadius = 1200;
-
-        // Create circular boss chamber
-        for (let j = 0; j < 32; j++) {
-          const angle1 = (j / 32) * Math.PI * 2;
-          const angle2 = ((j + 1) / 32) * Math.PI * 2;
-
-          const x1 = bossX + Math.cos(angle1) * bossRadius;
-          const y1 = bossY + Math.sin(angle1) * bossRadius;
-          const x2 = bossX + Math.cos(angle2) * bossRadius;
-          const y2 = bossY + Math.sin(angle2) * bossRadius;
-
-          // Skip one segment to create an entrance
-          if (j !== 24) {
-            const dx = x2 - x1;
-            const dy = y2 - y1;
-            const length = Math.sqrt(dx * dx + dy * dy);
-            const normalX = dy / length;
-            const normalY = -dx / length;
-
-            this.walls.push({
-              x: x1,
-              y: y1,
-              width: length,
-              height: 100,
-              angle: Math.atan2(dy, dx),
-              color: "#8B4513",
-              isRotated: true,
-            });
-          }
-        }
-
-        // Add pillars in boss room
-        for (let i = 0; i < 6; i++) {
-          const angle = (i / 6) * Math.PI * 2;
-          const x = bossX + Math.cos(angle) * (bossRadius * 0.6);
-          const y = bossY + Math.sin(angle) * (bossRadius * 0.6);
-
-          this.walls.push({
-            x: x - 75,
-            y: y - 75,
-            width: 150,
-            height: 150,
-            color: "#8B4513",
-          });
-        }
+        // Add some pillars
+        this.walls.push({ x: 2000, y: 2000, width: 200, height: 200, color: "#8B4513" });
+        this.walls.push({ x: 4200, y: 2000, width: 200, height: 200, color: "#8B4513" });
       },
 
       // Update boss behavior
-      updateBoss: function(deltaTime) {
+      updateBoss: function (deltaTime) {
         if (!this.boss) return;
+
+        // Update boss animation
+        this.boss.animationTimer += deltaTime;
+        if (this.boss.animationTimer >= this.boss.animationSpeed) {
+          this.boss.animationFrame = (this.boss.animationFrame + 1) % 4;
+          this.boss.animationTimer = 0;
+        }
 
         // Update boss state
         this.boss.lastStateChange += deltaTime;
@@ -2560,8 +3671,9 @@
             // Move toward player if not too close
             if (distanceToPlayer > 150) {
               const angle = Math.atan2(dy, dx);
-              const newBossX = this.boss.x + Math.cos(angle) * this.boss.speed;
-              const newBossY = this.boss.y + Math.sin(angle) * this.boss.speed;
+              const moveDistance = this.boss.speed * (deltaTime / 1000);
+              const newBossX = this.boss.x + Math.cos(angle) * moveDistance;
+              const newBossY = this.boss.y + Math.sin(angle) * moveDistance;
 
               // Check if boss would collide with walls
               const bossRect = {
@@ -2599,7 +3711,7 @@
                   x: this.boss.x + this.boss.width / 2,
                   y: this.boss.y + this.boss.height / 2,
                   radius: 15,
-                  speed: 4,
+                  speed: 160, // pixels per second
                   angle: spreadAngle,
                   color: "red",
                 });
@@ -2613,8 +3725,9 @@
         // Update boss projectiles
         for (let i = this.boss.attackProjectiles.length - 1; i >= 0; i--) {
           const proj = this.boss.attackProjectiles[i];
-          proj.x += Math.cos(proj.angle) * proj.speed;
-          proj.y += Math.sin(proj.angle) * proj.speed;
+          const moveDistance = proj.speed * (deltaTime / 1000);
+          proj.x += Math.cos(proj.angle) * moveDistance;
+          proj.y += Math.sin(proj.angle) * moveDistance;
 
           // Check if projectile hits player
           const distance = Math.sqrt(
@@ -2623,10 +3736,20 @@
 
           if (distance < proj.radius + player.width / 2) {
             // Player takes damage if not invulnerable
-            if (!player.invulnerable) {
+            if (!player.invulnerable && !godMode) {
               player.health -= this.boss.damage;
               player.invulnerable = true;
               player.invulnerableTimer = player.invulnerableDuration;
+
+              // Create hit particles
+              createParticles(
+                player.x + player.width / 2,
+                player.y + player.height / 2,
+                10,
+                "red",
+                0.8,
+                500
+              );
 
               // Game over if player health reaches 0
               if (player.health <= 0) {
@@ -2639,32 +3762,28 @@
             this.boss.attackProjectiles.splice(i, 1);
           }
 
-          // Remove projectiles that hit walls
-          else if (
-            this.walls.some((wall) => {
-              if (wall.isRotated) {
-                // Complex collision for rotated walls
-                // Simplified approach: check if point is close to line segment
-                return false; // Implement proper rotated collision if needed
-              } else {
-                return proj.x > wall.x && proj.x < wall.x + wall.width && proj.y > wall.y && proj.y < wall.y + wall.height;
-              }
-            })
-          ) {
-            this.boss.attackProjectiles.splice(i, 1);
-          }
-
-          // Remove projectiles that go off-screen
-          else if (proj.x < 0 || proj.x > this.width || proj.y < 0 || proj.y > this.height) {
+          // Remove projectiles that hit walls or go off-screen
+          else if (proj.x < 0 || proj.x > this.width || proj.y < 0 || proj.y > this.height ||
+            this.walls.some(wall => checkCollision(proj, wall))) {
             this.boss.attackProjectiles.splice(i, 1);
           }
         }
 
         // Check collision with boss (direct damage if touching)
-        if (checkCollision(player, this.boss) && !player.invulnerable) {
+        if (checkCollision(player, this.boss) && !player.invulnerable && !godMode) {
           player.health -= this.boss.damage * 2; // Double damage for direct contact
           player.invulnerable = true;
           player.invulnerableTimer = player.invulnerableDuration;
+
+          // Create hit particles
+          createParticles(
+            player.x + player.width / 2,
+            player.y + player.height / 2,
+            10,
+            "red",
+            0.8,
+            500
+          );
 
           // Game over if player health reaches 0
           if (player.health <= 0) {
@@ -2676,34 +3795,16 @@
         // Check health potions
         for (let i = this.healthPotions.length - 1; i >= 0; i--) {
           if (checkCollision(player, this.healthPotions[i])) {
-            player.health = Math.min(player.maxHealth, player.health + this.healthPotions[i].healing);
+            const healing = this.healthPotions[i].healing;
+            player.health = Math.min(player.maxHealth, player.health + healing);
             this.healthPotions.splice(i, 1);
-            showNotification(`+${this.healthPotions[i].healing} Health`);
-          }
-        }
-
-        // Check checkpoints
-        for (let i = 0; i < this.checkpoints.length; i++) {
-          const checkpoint = this.checkpoints[i];
-          if (!checkpoint.reached) {
-            const checkpointRect = {
-              x: checkpoint.x - 50,
-              y: checkpoint.y - 50,
-              width: 100,
-              height: 100,
-            };
-
-            if (checkCollision(player, checkpointRect)) {
-              checkpoint.reached = true;
-              showNotification("Checkpoint reached!");
-              saveGameProgress();
-            }
+            showNotification(`+${healing} Health`);
           }
         }
       },
 
       // Render level background
-      renderBackground: function(ctx) {
+      renderBackground: function (ctx) {
         // Castle floor
         ctx.fillStyle = "#A9A9A9"; // Dark gray
         ctx.fillRect(0, 0, this.width, this.height);
@@ -2730,7 +3831,7 @@
 
         // Use a fixed seed for consistent random patterns
         const pseudoRandom = (x, y) => {
-          return (Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1;
+          return (((Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1) + 1) % 1;
         };
 
         for (let x = startX; x < endX; x += 200) {
@@ -2768,64 +3869,11 @@
       },
 
       // Render any additional level-specific elements
-      render: function(ctx) {
+      render: function (ctx) {
         // Draw walls
         for (const wall of this.walls) {
-          if (wall.isRotated) {
-            // Draw rotated wall
-            ctx.save();
-            ctx.translate(wall.x, wall.y);
-            ctx.rotate(wall.angle);
-
-            // Wall base
-            ctx.fillStyle = wall.color;
-            ctx.fillRect(0, -wall.height / 2, wall.width, wall.height);
-
-            // Wall detail (stone pattern)
-            ctx.fillStyle = "#696969"; // Dim gray
-            const stoneSize = 10;
-            for (let x = 0; x < wall.width; x += stoneSize) {
-              for (let y = -wall.height / 2; y < wall.height / 2; y += stoneSize) {
-                if (Math.random() > 0.7) {
-                  ctx.fillRect(x, y, stoneSize, stoneSize);
-                }
-              }
-            }
-
-            ctx.restore();
-          } else {
-            // Draw normal wall
-            ctx.fillStyle = wall.color;
-            ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
-
-            // Wall detail (stone pattern)
-            ctx.fillStyle = "#696969"; // Dim gray
-            const stoneSize = 10;
-            for (let x = wall.x; x < wall.x + wall.width; x += stoneSize) {
-              for (let y = wall.y; y < wall.y + wall.height; y += stoneSize) {
-                if (Math.random() > 0.7) {
-                  ctx.fillRect(x, y, stoneSize, stoneSize);
-                }
-              }
-            }
-          }
-        }
-
-        // Draw checkpoints
-        for (const checkpoint of this.checkpoints) {
-          ctx.fillStyle = checkpoint.reached ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 255, 0, 0.5)";
-          ctx.beginPath();
-          ctx.arc(checkpoint.x, checkpoint.y, 50, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Checkpoint symbol
-          ctx.strokeStyle = "white";
-          ctx.lineWidth = 5;
-          ctx.beginPath();
-          ctx.moveTo(checkpoint.x - 20, checkpoint.y);
-          ctx.lineTo(checkpoint.x - 10, checkpoint.y + 20);
-          ctx.lineTo(checkpoint.x + 20, checkpoint.y - 15);
-          ctx.stroke();
+          ctx.fillStyle = wall.color;
+          ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
         }
 
         // Draw health potions
@@ -2871,7 +3919,7 @@
       },
 
       // Render boss
-      renderBoss: function(ctx) {
+      renderBoss: function (ctx) {
         if (!this.boss) return;
 
         // Boss body
@@ -2900,102 +3948,18 @@
         ctx.fillStyle = "black";
         ctx.fillRect(this.boss.x + this.boss.width / 4, this.boss.y + (this.boss.height * 2) / 3, this.boss.width / 2, 8);
 
-        // Boss state indicator
-        let stateColor;
-        switch (this.boss.state) {
-          case "idle":
-            stateColor = "blue";
-            break;
-          case "chasing":
-            stateColor = "green";
-            break;
-          case "attacking":
-            stateColor = "red";
-            break;
-        }
-
-        ctx.fillStyle = stateColor;
-        ctx.beginPath();
-        ctx.arc(this.boss.x + this.boss.width / 2, this.boss.y - 40, 10, 0, Math.PI * 2);
-        ctx.fill();
-
         // Draw boss projectiles
         for (const proj of this.boss.attackProjectiles) {
-          // Projectile body
           ctx.fillStyle = proj.color;
           ctx.beginPath();
           ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
           ctx.fill();
-
-          // Projectile trail
-          ctx.fillStyle = "rgba(255, 165, 0, 0.5)"; // Orange with transparency
-          ctx.beginPath();
-          ctx.arc(proj.x - Math.cos(proj.angle) * 10, proj.y - Math.sin(proj.angle) * 10, proj.radius * 0.8, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.beginPath();
-          ctx.arc(proj.x - Math.cos(proj.angle) * 20, proj.y - Math.sin(proj.angle) * 20, proj.radius * 0.6, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.beginPath();
-          ctx.arc(proj.x - Math.cos(proj.angle) * 30, proj.y - Math.sin(proj.angle) * 30, proj.radius * 0.4, 0, Math.PI * 2);
-          ctx.fill();
         }
       },
 
-      // Render minimap
-      renderMinimap: function(ctx) {
-        // Create minimap container
-        const minimapSize = 200;
-        const minimapX = canvas.width - minimapSize - 20;
-        const minimapY = canvas.height - minimapSize - 20;
-
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-        ctx.fillRect(minimapX, minimapY, minimapSize, minimapSize);
-        ctx.strokeStyle = "white";
-        ctx.strokeRect(minimapX, minimapY, minimapSize, minimapSize);
-
-        // Calculate scale factors
-        const scaleX = minimapSize / this.width;
-        const scaleY = minimapSize / this.height;
-
-        // Draw walls on minimap
-        ctx.fillStyle = "rgba(139, 69, 19, 0.7)"; // Brown with transparency
-        for (const wall of this.walls) {
-          if (wall.isRotated) {
-            // Skip rotated walls for simplicity
-            continue;
-          }
-
-          ctx.fillRect(minimapX + wall.x * scaleX, minimapY + wall.y * scaleY, wall.width * scaleX, wall.height * scaleY);
-        }
-
-        // Draw checkpoints on minimap
-        for (const checkpoint of this.checkpoints) {
-          ctx.fillStyle = checkpoint.reached ? "rgba(0, 255, 0, 0.7)" : "rgba(255, 255, 0, 0.7)";
-          ctx.beginPath();
-          ctx.arc(minimapX + checkpoint.x * scaleX, minimapY + checkpoint.y * scaleY, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Draw boss on minimap
-        if (this.boss) {
-          ctx.fillStyle = "rgba(255, 0, 0, 0.7)"; // Red with transparency
-          ctx.fillRect(minimapX + this.boss.x * scaleX, minimapY + this.boss.y * scaleY, 5, 5);
-        }
-
-        // Draw player on minimap
-        ctx.fillStyle = "rgba(0, 0, 255, 0.7)"; // Blue with transparency
-        ctx.fillRect(minimapX + player.x * scaleX, minimapY + player.y * scaleY, 3, 3);
-
-        // Draw camera viewport on minimap
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-        ctx.strokeRect(
-          minimapX + camera.x * scaleX,
-          minimapY + camera.y * scaleY,
-          camera.width * scaleX,
-          camera.height * scaleY,
-        );
+      // Render minimap (empty for boss level)
+      renderMinimap: function (ctx) {
+        // No minimap for boss level
       },
     };
 
@@ -3006,6 +3970,9 @@
     });
 
     function initGame() {
+      // Load settings
+      loadSettings();
+
       // Check for saved game
       const savedGame = loadGameProgress();
       if (savedGame && !savedGame.completed) {
@@ -3019,4 +3986,3 @@
 </body>
 
 </html>
-
